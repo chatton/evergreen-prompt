@@ -3,6 +3,7 @@ package evergreen
 import (
 	"github.com/goccy/go-yaml"
 	"io/ioutil"
+	"path/filepath"
 )
 
 type Configuration struct {
@@ -80,9 +81,13 @@ func containsTask(tasks []Task, taskName string) bool {
 	return false
 }
 
-func FromYamlConfigFile(fullPathOfEvergreenYaml string) (Configuration, error) {
+func FromYamlConfigFile() (Configuration, error) {
+	evgFilePath, err := filepath.Abs(".evergreen.yml")
+	if err != nil {
+		return Configuration{}, err
+	}
 	config := Configuration{}
-	bytes, err := ioutil.ReadFile(fullPathOfEvergreenYaml)
+	bytes, err := ioutil.ReadFile(evgFilePath)
 	if err != nil {
 		return Configuration{}, err
 	}

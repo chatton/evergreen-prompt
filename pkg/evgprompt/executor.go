@@ -46,8 +46,6 @@ func (e *Executor) Execute(in string) {
 			fmt.Println("Buildvariant must be specified!")
 		}
 
-		fmt.Println("running an evergreen patch task: " + task + " buildvariant: " + buildvariant)
-
 		cmd := exec.Command("evergreen", "patch", "-p", e.client.ActiveProject, "-f", "-u", "-d", "evergreen-prompt task", "-t", task, "-v", buildvariant, "-y")
 		cmd.Stdin = os.Stdin
 		cmd.Stdout = os.Stdout

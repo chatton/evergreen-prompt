@@ -10,7 +10,7 @@ import (
 
 func main() {
 
-	config, err := evergreen.FromYamlConfigFile("/Users/cianhatton/go/src/github.com/mongodb/mongodb-kubernetes-operator/.evergreen.yml")
+	config, err := evergreen.FromYamlConfigFile()
 	if err != nil {
 		panic(err)
 	}
@@ -26,6 +26,6 @@ func main() {
 
 	p := prompt.New(executor.Execute, completer.Complete,
 		prompt.OptionTitle("evergreen-prompt"))
-		prompt.OptionPrefix(">>> ")
+	prompt.OptionPrefix(">>> ")
 	p.Run()
 }
