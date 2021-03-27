@@ -54,7 +54,6 @@ func (c *Completer) Complete(d prompt.Document) []prompt.Suggest {
 	}
 
 	if getLastWord(d) == "--buildvariant" {
-
 		return c.getBuildVariantSuggestions(d)
 	}
 
@@ -77,16 +76,24 @@ func (c *Completer) Complete(d prompt.Document) []prompt.Suggest {
 }
 
 func patchSuggestions(d prompt.Document) []prompt.Suggest {
-	suggestions := []prompt.Suggest{
-		{
-			Text:        "--task",
-			Description: "Specify a task to run",
-		},
-		{
-			Text:        "--buildvariant",
-			Description: "Specify a build variant",
-		},
+	var suggestions []prompt.Suggest
+
+	if flagutil.GetTaskFlag(d) == "" {
+		suggestions = append(suggestions,
+			prompt.Suggest{
+				Text:        "--task",
+				Description: "Specify a task to run",
+			})
 	}
+
+	if flagutil.GetBuildVariantFlag(d) == "" {
+		suggestions = append(suggestions,
+			prompt.Suggest{
+				Text:        "--buildvariant",
+				Description: "Specify a build variant",
+			})
+	}
+
 	return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
 }
 
@@ -108,7 +115,21 @@ func (c *Completer) projectSuggestions() []prompt.Suggest {
 
 func (c *Completer) getTaskSuggestions(d prompt.Document) []prompt.Suggest {
 	var suggestions []prompt.Suggest
-	for _, t := range c.config.Tasks {
+
+	// if we are getting the task and the buildvariant already specified, we need to show
+	// only the tasks that contain this build varient otherwise we can show all the tasks.
+	buildvariantValue := flagutil.GetBuildVariantFlag(d)
+
+	if buildvariantValue == "" {
+		for _, t := range c.config.Tasks {
+			suggestions = append(suggestions, prompt.Suggest{
+				Text: t.Name,
+			})
+		}
+		return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
+	}
+
+	for _, t := range c.config.GetTasksInBuildVariant(buildvariantValue) {
 		suggestions = append(suggestions, prompt.Suggest{
 			Text: t.Name,
 		})
@@ -121,7 +142,7 @@ func (c *Completer) getBuildVariantSuggestions(d prompt.Document) []prompt.Sugge
 
 	// if we are getting the build variant and the task is already specified, we need to show
 	// only the build variants that contain this task, otherwise we can show all the buildvariants.
-	taskValue := flagutil.ExtractFlagValue("--task", d.TextBeforeCursor())
+	taskValue := flagutil.GetTaskFlag(d)
 
 	if taskValue == "" {
 		for _, bv := range c.config.BuildVariants {
