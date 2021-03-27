@@ -3,6 +3,7 @@ package evgprompt
 import (
 	"chatton.com/evergreen-prompt/pkg/evergreen"
 	"chatton.com/evergreen-prompt/pkg/evergreen/client"
+	"chatton.com/evergreen-prompt/pkg/util/flagutil"
 	"github.com/c-bata/go-prompt"
 	"strings"
 )
@@ -49,31 +50,12 @@ func (c *Completer) Complete(d prompt.Document) []prompt.Suggest {
 	}
 
 	if getLastWord(d) == "--task" {
-		suggestions := []prompt.Suggest{
-			{
-				Text:        "task-1",
-				Description: "",
-			},
-			{
-				Text:        "task-2",
-				Description: "",
-			},
-		}
-		return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
+		return c.getTaskSuggestions(d)
 	}
 
 	if getLastWord(d) == "--buildvariant" {
-		suggestions := []prompt.Suggest{
-			{
-				Text:        "buildvariant-1",
-				Description: "",
-			},
-			{
-				Text:        "buildvariant-2",
-				Description: "",
-			},
-		}
-		return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
+
+		return c.getBuildVariantSuggestions(d)
 	}
 
 	if strings.HasPrefix(d.TextBeforeCursor(), "patch") {
@@ -122,4 +104,39 @@ func (c *Completer) projectSuggestions() []prompt.Suggest {
 	}
 
 	return suggestions
+}
+
+func (c *Completer) getTaskSuggestions(d prompt.Document) []prompt.Suggest {
+	var suggestions []prompt.Suggest
+	for _, t := range c.config.Tasks {
+		suggestions = append(suggestions, prompt.Suggest{
+			Text: t.Name,
+		})
+	}
+	return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
+}
+
+func (c *Completer) getBuildVariantSuggestions(d prompt.Document) []prompt.Suggest {
+	var suggestions []prompt.Suggest
+
+	// if we are getting the build variant and the task is already specified, we need to show
+	// only the build variants that contain this task, otherwise we can show all the buildvariants.
+	taskValue := flagutil.ExtractFlagValue("--task", d.TextBeforeCursor())
+
+	if taskValue == "" {
+		for _, bv := range c.config.BuildVariants {
+			suggestions = append(suggestions, prompt.Suggest{
+				Text: bv.Name,
+			})
+		}
+		return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
+	}
+
+	for _, bv := range c.config.GetBuildVariantsThatTaskIsIn(taskValue) {
+		suggestions = append(suggestions, prompt.Suggest{
+			Text: bv.Name,
+		})
+	}
+
+	return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
 }
