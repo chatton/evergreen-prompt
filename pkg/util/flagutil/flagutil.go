@@ -2,16 +2,15 @@ package flagutil
 
 import (
 	"fmt"
-	"github.com/c-bata/go-prompt"
 	"regexp"
 )
 
-func GetBuildVariantFlag(d prompt.Document) string {
-	return ExtractFlagValue("--buildvariant", d.TextBeforeCursor())
+func GetBuildVariantFlag(s string) string {
+	return ExtractFlagValue("--buildvariant", s)
 }
 
-func GetTaskFlag(d prompt.Document) string {
-	return ExtractFlagValue("--task", d.TextBeforeCursor())
+func GetTaskFlag(s string) string {
+	return ExtractFlagValue("--task", s)
 }
 
 func ExtractFlagValue(flag, text string) string {

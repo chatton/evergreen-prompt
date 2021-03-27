@@ -78,7 +78,8 @@ func (c *Completer) Complete(d prompt.Document) []prompt.Suggest {
 func patchSuggestions(d prompt.Document) []prompt.Suggest {
 	var suggestions []prompt.Suggest
 
-	if flagutil.GetTaskFlag(d) == "" {
+	// we only want to show suggestions when they have not yet been specified.
+	if flagutil.GetTaskFlag(d.TextBeforeCursor()) == "" {
 		suggestions = append(suggestions,
 			prompt.Suggest{
 				Text:        "--task",
@@ -86,7 +87,7 @@ func patchSuggestions(d prompt.Document) []prompt.Suggest {
 			})
 	}
 
-	if flagutil.GetBuildVariantFlag(d) == "" {
+	if flagutil.GetBuildVariantFlag(d.TextBeforeCursor()) == "" {
 		suggestions = append(suggestions,
 			prompt.Suggest{
 				Text:        "--buildvariant",
@@ -118,7 +119,7 @@ func (c *Completer) getTaskSuggestions(d prompt.Document) []prompt.Suggest {
 
 	// if we are getting the task and the buildvariant already specified, we need to show
 	// only the tasks that contain this build varient otherwise we can show all the tasks.
-	buildvariantValue := flagutil.GetBuildVariantFlag(d)
+	buildvariantValue := flagutil.GetBuildVariantFlag(d.TextBeforeCursor())
 
 	if buildvariantValue == "" {
 		for _, t := range c.config.Tasks {
@@ -142,7 +143,7 @@ func (c *Completer) getBuildVariantSuggestions(d prompt.Document) []prompt.Sugge
 
 	// if we are getting the build variant and the task is already specified, we need to show
 	// only the build variants that contain this task, otherwise we can show all the buildvariants.
-	taskValue := flagutil.GetTaskFlag(d)
+	taskValue := flagutil.GetTaskFlag(d.TextBeforeCursor())
 
 	if taskValue == "" {
 		for _, bv := range c.config.BuildVariants {

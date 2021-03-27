@@ -71,15 +71,6 @@ func (c Configuration) GetBuildVariantsThatTaskIsIn(taskName string) []BuildVari
 	return buildVariants
 }
 
-//func containsBuildVariant(buildvariants []BuildVariant, bvName string) bool {
-//	for _, b := range buildvariants {
-//		if b.Name == bvName {
-//			return true
-//		}
-//	}
-//	return false
-//}
-
 func containsTask(tasks []Task, taskName string) bool {
 	for _, t := range tasks {
 		if t.Name == taskName {
