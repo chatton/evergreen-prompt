@@ -5,6 +5,7 @@ import (
 	"chatton.com/evergreen-prompt/pkg/util/flagutil"
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 )
 
@@ -46,6 +47,15 @@ func (e *Executor) Execute(in string) {
 		}
 
 		fmt.Println("running an evergreen patch task: " + task + " buildvariant: " + buildvariant)
+
+		cmd := exec.Command("evergreen", "patch", "-p", e.client.ActiveProject, "-f", "-u", "-d", "evergreen-prompt task", "-t", task, "-v", buildvariant, "-y")
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
+			panic(err)
+		}
+
 		return
 	}
 }
