@@ -1,27 +1,83 @@
 package evgprompt
 
 import (
+	"chatton.com/evergreen-prompt/pkg/evergreen"
 	"chatton.com/evergreen-prompt/pkg/evergreen/client"
 	"github.com/c-bata/go-prompt"
 	"strings"
 )
 
-func NewCompleter(c *client.EvergreenClient) Completer {
+func NewCompleter(c *client.EvergreenClient, config evergreen.Configuration) Completer {
 	return Completer{
 		client: c,
+		config: config,
 	}
 }
 
 type Completer struct {
 	client *client.EvergreenClient
+	config evergreen.Configuration
+}
+
+// getLastWord returns rightmost word.
+func getLastWord(d prompt.Document) string {
+	text := d.TextBeforeCursor()
+	args := strings.Split(text, " ")
+	if len(args) > 1 {
+		return args[len(args)-2]
+	}
+	return ""
 }
 
 func (c *Completer) Complete(d prompt.Document) []prompt.Suggest {
 	if d.TextBeforeCursor() == "" {
-		return []prompt.Suggest{}
+		suggestions := []prompt.Suggest{
+			{
+				Text:        "patch",
+				Description: "",
+			},
+			{
+				Text:        "set-project",
+				Description: "",
+			},
+		}
+		return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
 	}
-	if suggestions, found := c.completeOptionArguments(d); found {
-		return suggestions
+
+	if getLastWord(d) == "set-project" {
+		return prompt.FilterFuzzy(c.projectSuggestions(), d.GetWordBeforeCursor(), true)
+	}
+
+	if getLastWord(d) == "--task" {
+		suggestions := []prompt.Suggest{
+			{
+				Text:        "task-1",
+				Description: "",
+			},
+			{
+				Text:        "task-2",
+				Description: "",
+			},
+		}
+		return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
+	}
+
+	if getLastWord(d) == "--buildvariant" {
+		suggestions := []prompt.Suggest{
+			{
+				Text:        "buildvariant-1",
+				Description: "",
+			},
+			{
+				Text:        "buildvariant-2",
+				Description: "",
+			},
+		}
+		return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
+	}
+
+	if strings.HasPrefix(d.TextBeforeCursor(), "patch") {
+		return patchSuggestions(d)
 	}
 
 	// don't display set-project if it has already been set.
@@ -38,31 +94,18 @@ func (c *Completer) Complete(d prompt.Document) []prompt.Suggest {
 	)
 }
 
-
-func getPreviousOption(d prompt.Document) (cmd, option string, found bool) {
-	args := strings.Split(d.TextBeforeCursor(), " ")
-	l := len(args)
-	if l >= 2 {
-		option = args[l-2]
-		return "", option, true
+func patchSuggestions(d prompt.Document) []prompt.Suggest {
+	suggestions := []prompt.Suggest{
+		{
+			Text:        "--task",
+			Description: "Specify a task to run",
+		},
+		{
+			Text:        "--buildvariant",
+			Description: "Specify a build variant",
+		},
 	}
-	if strings.HasPrefix(option, "-") {
-		return args[0], option, true
-	}
-	return "", "", false
-}
-
-func (c *Completer) completeOptionArguments(d prompt.Document) ([]prompt.Suggest, bool) {
-	_, previousWord, found := getPreviousOption(d)
-	if !found {
-		return []prompt.Suggest{}, false
-	}
-
-	if previousWord == "set-project" {
-		return prompt.FilterFuzzy(c.projectSuggestions(), d.GetWordBeforeCursor(), true), true
-	}
-
-	return []prompt.Suggest{}, false
+	return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
 }
 
 func (c *Completer) projectSuggestions() []prompt.Suggest {

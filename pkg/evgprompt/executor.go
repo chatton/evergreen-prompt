@@ -27,7 +27,8 @@ func (e *Executor) Execute(in string) {
 	if strings.HasPrefix(in, "set-project") {
 		split := strings.Split(in, " ")
 		project := split[1]
-		fmt.Println("You selected project: " + project)
+		fmt.Println("setting active project to: " + project)
+		e.client.ActiveProject = project
 	}
 }
 

@@ -18,6 +18,7 @@ type EvergreenClient struct {
 
 	projects       []string
 	currentProject string
+	ActiveProject  string
 }
 
 type Config struct {
