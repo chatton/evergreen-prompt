@@ -31,24 +31,9 @@ func getLastWord(d prompt.Document) string {
 }
 
 func (c *Completer) Complete(d prompt.Document) []prompt.Suggest {
-	//if strings.TrimSpace(d.TextBeforeCursor()) == "" {
-	//	suggestions := []prompt.Suggest{
-	//		{
-	//			Text:        "patch",
-	//			Description: "run an evergreen patch",
-	//		},
-	//		{
-	//			Text:        "set-project",
-	//			Description: "change the active evergreen project",
-	//		},
-	//	}
-	//	return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
-	//}
-
 	if getLastWord(d) == "set-project" {
 		return prompt.FilterFuzzy(c.projectSuggestions(), d.GetWordBeforeCursor(), true)
 	}
-
 
 	if getLastWord(d) == "--task" {
 		return c.getTaskSuggestions(d)
@@ -59,6 +44,10 @@ func (c *Completer) Complete(d prompt.Document) []prompt.Suggest {
 	}
 
 	if getLastWord(d) == "--description" {
+		return nil
+	}
+
+	if getLastWord(d) == "--priority" {
 		return nil
 	}
 
@@ -109,6 +98,14 @@ func patchSuggestions(d prompt.Document) []prompt.Suggest {
 			prompt.Suggest{
 				Text:        "--description",
 				Description: "Specify a description for the patch",
+			})
+	}
+
+	if flagutil.GetDescriptionValue(d.TextBeforeCursor()) == "" {
+		suggestions = append(suggestions,
+			prompt.Suggest{
+				Text:        "--priority",
+				Description: "Specify the priority for the patch",
 			})
 	}
 

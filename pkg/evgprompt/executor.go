@@ -2,10 +2,12 @@ package evgprompt
 
 import (
 	"chatton.com/evergreen-prompt/pkg/evergreen/client"
+	"chatton.com/evergreen-prompt/pkg/evergreen/patch"
 	"chatton.com/evergreen-prompt/pkg/util/flagutil"
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 )
 
@@ -36,34 +38,56 @@ func (e *Executor) Execute(in string) {
 
 	if strings.HasPrefix(in, "patch") {
 
+		args := []string{
+			"patch", "-p", e.client.ActiveProject, "-f", "-u",
+		}
+
 		task := flagutil.GetTaskValue(in)
 		if task == "" {
 			fmt.Println("Task must be specified!")
 		}
+
+		args = append(args, "-t", task)
 
 		buildvariant := flagutil.GetBuildVariantValue(in)
 		if buildvariant == "" {
 			fmt.Println("Buildvariant must be specified!")
 		}
 
+		args = append(args, "-v", buildvariant)
+
 		description := flagutil.GetDescriptionValue(in)
 		if description == "" {
 			description = "evergreen-prompt task"
 		}
 
-		out, err := exec.Command("evergreen", "patch", "-p", e.client.ActiveProject, "-f", "-u", "-d", description, "-t", task, "-v", buildvariant, "-y").Output()
+		args = append(args, "-d", description)
+
+		out, err := exec.Command("evergreen", args...).Output()
 		if err != nil {
 			panic(err)
 		}
 		fmt.Println(string(out))
-		//cmd.Stdin = os.Stdin
-		//cmd.Stdout = os.Stdout
-		//cmd.Stderr = os.Stderr
-		//if err := cmd.Run(); err != nil {
-		//	panic(err)
-		//}
 
-		//return
-		//}
+		id := getPatchIdFromCliOutput(string(out))
+
+		if priority := flagutil.GetPriorityValue(in); priority != "" {
+			// set priority of patch
+			_, err := e.client.PatchPatch(id, patch.Body{Priority: 50})
+			if err != nil {
+				panic(err)
+			}
+		}
+
 	}
+}
+
+func getPatchIdFromCliOutput(output string) string {
+	pattern := fmt.Sprintf(`\s+ID\s:\s([a-zA-Z0-9]+)`)
+	r := regexp.MustCompile(pattern)
+	allMatches := r.FindStringSubmatch(output)
+	if len(allMatches) != 2 {
+		return ""
+	}
+	return allMatches[1]
 }

@@ -1,6 +1,8 @@
 package client
 
 import (
+	"bytes"
+	"chatton.com/evergreen-prompt/pkg/evergreen/patch"
 	"chatton.com/evergreen-prompt/pkg/evergreen/project"
 	"encoding/json"
 	"fmt"
@@ -76,6 +78,21 @@ func (c *EvergreenClient) get(endpoint string) ([]byte, error) {
 	return ioutil.ReadAll(res.Body)
 }
 
+func (c *EvergreenClient) patch(endpoint string, body []byte) ([]byte, error) {
+	req, err := http.NewRequest("PATCH", fmt.Sprintf("%s/%s", c.baseUrl, endpoint), bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Api-User", c.username)
+	req.Header.Set("Api-Key", c.apiKey)
+	res, err := c.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	return ioutil.ReadAll(res.Body)
+}
+
 func (c *EvergreenClient) GetProjects() ([]string, error) {
 	if c.projects != nil {
 		return c.projects, nil
@@ -92,4 +109,19 @@ func (c *EvergreenClient) GetProjects() ([]string, error) {
 	c.projects = allProjects.Projects
 	return allProjects.Projects, nil
 
+}
+
+func (c *EvergreenClient) PatchPatch(patchId string, body patch.Body) ([]string, error) {
+	bytes, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := c.patch(fmt.Sprintf("rest/v1/patches/%s", patchId), bytes)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println(b)
+	return nil, nil
 }

@@ -18,6 +18,10 @@ func GetDescriptionValue(s string) string {
 	return ExtractFlagValue("--description", s)
 }
 
+func GetPriorityValue(s string) string {
+	return ExtractFlagValue("--priority", s)
+}
+
 func ExtractFlagValue(flag, text string) string {
 	pattern := fmt.Sprintf(`%s\s+(["a-z0-9_\s]+)`, flag)
 	r := regexp.MustCompile(pattern)
