@@ -36,24 +36,34 @@ func (e *Executor) Execute(in string) {
 
 	if strings.HasPrefix(in, "patch") {
 
-		task := flagutil.ExtractFlagValue("--task", in)
+		task := flagutil.GetTaskValue(in)
 		if task == "" {
 			fmt.Println("Task must be specified!")
 		}
 
-		buildvariant := flagutil.ExtractFlagValue("--buildvariant", in)
+		buildvariant := flagutil.GetBuildVariantValue(in)
 		if buildvariant == "" {
 			fmt.Println("Buildvariant must be specified!")
 		}
 
-		cmd := exec.Command("evergreen", "patch", "-p", e.client.ActiveProject, "-f", "-u", "-d", "evergreen-prompt task", "-t", task, "-v", buildvariant, "-y")
-		cmd.Stdin = os.Stdin
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		if err := cmd.Run(); err != nil {
-			panic(err)
+		description := flagutil.GetDescriptionValue(in)
+		if description == "" {
+			description = "evergreen-prompt task"
 		}
 
-		return
+		out, err := exec.Command("evergreen", "patch", "-p", e.client.ActiveProject, "-f", "-u", "-d", description, "-t", task, "-v", buildvariant, "-y").Output()
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(string(out))
+		//cmd.Stdin = os.Stdin
+		//cmd.Stdout = os.Stdout
+		//cmd.Stderr = os.Stderr
+		//if err := cmd.Run(); err != nil {
+		//	panic(err)
+		//}
+
+		//return
+		//}
 	}
 }

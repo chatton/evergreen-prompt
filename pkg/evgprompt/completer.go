@@ -31,23 +31,24 @@ func getLastWord(d prompt.Document) string {
 }
 
 func (c *Completer) Complete(d prompt.Document) []prompt.Suggest {
-	if d.TextBeforeCursor() == "" {
-		suggestions := []prompt.Suggest{
-			{
-				Text:        "patch",
-				Description: "",
-			},
-			{
-				Text:        "set-project",
-				Description: "",
-			},
-		}
-		return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
-	}
+	//if strings.TrimSpace(d.TextBeforeCursor()) == "" {
+	//	suggestions := []prompt.Suggest{
+	//		{
+	//			Text:        "patch",
+	//			Description: "run an evergreen patch",
+	//		},
+	//		{
+	//			Text:        "set-project",
+	//			Description: "change the active evergreen project",
+	//		},
+	//	}
+	//	return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
+	//}
 
 	if getLastWord(d) == "set-project" {
 		return prompt.FilterFuzzy(c.projectSuggestions(), d.GetWordBeforeCursor(), true)
 	}
+
 
 	if getLastWord(d) == "--task" {
 		return c.getTaskSuggestions(d)
@@ -55,6 +56,10 @@ func (c *Completer) Complete(d prompt.Document) []prompt.Suggest {
 
 	if getLastWord(d) == "--buildvariant" {
 		return c.getBuildVariantSuggestions(d)
+	}
+
+	if getLastWord(d) == "--description" {
+		return nil
 	}
 
 	if strings.HasPrefix(d.TextBeforeCursor(), "patch") {
@@ -68,6 +73,10 @@ func (c *Completer) Complete(d prompt.Document) []prompt.Suggest {
 
 	return prompt.FilterFuzzy([]prompt.Suggest{
 		{
+			Text:        "patch",
+			Description: "run an evergreen patch",
+		},
+		{
 			Text:        "set-project",
 			Description: "Choose the active project",
 		},
@@ -79,7 +88,7 @@ func patchSuggestions(d prompt.Document) []prompt.Suggest {
 	var suggestions []prompt.Suggest
 
 	// we only want to show suggestions when they have not yet been specified.
-	if flagutil.GetTaskFlag(d.TextBeforeCursor()) == "" {
+	if flagutil.GetTaskValue(d.TextBeforeCursor()) == "" {
 		suggestions = append(suggestions,
 			prompt.Suggest{
 				Text:        "--task",
@@ -87,11 +96,19 @@ func patchSuggestions(d prompt.Document) []prompt.Suggest {
 			})
 	}
 
-	if flagutil.GetBuildVariantFlag(d.TextBeforeCursor()) == "" {
+	if flagutil.GetBuildVariantValue(d.TextBeforeCursor()) == "" {
 		suggestions = append(suggestions,
 			prompt.Suggest{
 				Text:        "--buildvariant",
 				Description: "Specify a build variant",
+			})
+	}
+
+	if flagutil.GetDescriptionValue(d.TextBeforeCursor()) == "" {
+		suggestions = append(suggestions,
+			prompt.Suggest{
+				Text:        "--description",
+				Description: "Specify a description for the patch",
 			})
 	}
 
@@ -119,7 +136,7 @@ func (c *Completer) getTaskSuggestions(d prompt.Document) []prompt.Suggest {
 
 	// if we are getting the task and the buildvariant already specified, we need to show
 	// only the tasks that contain this build varient otherwise we can show all the tasks.
-	buildvariantValue := flagutil.GetBuildVariantFlag(d.TextBeforeCursor())
+	buildvariantValue := flagutil.GetBuildVariantValue(d.TextBeforeCursor())
 
 	if buildvariantValue == "" {
 		for _, t := range c.config.Tasks {
@@ -143,7 +160,7 @@ func (c *Completer) getBuildVariantSuggestions(d prompt.Document) []prompt.Sugge
 
 	// if we are getting the build variant and the task is already specified, we need to show
 	// only the build variants that contain this task, otherwise we can show all the buildvariants.
-	taskValue := flagutil.GetTaskFlag(d.TextBeforeCursor())
+	taskValue := flagutil.GetTaskValue(d.TextBeforeCursor())
 
 	if taskValue == "" {
 		for _, bv := range c.config.BuildVariants {
