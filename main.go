@@ -25,7 +25,8 @@ func main() {
 	executor := evgprompt.NewExecutor(c)
 
 	p := prompt.New(executor.Execute, completer.Complete,
-		prompt.OptionTitle("evergreen-prompt"))
-	prompt.OptionPrefix(">>> ")
+		prompt.OptionTitle("evergreen-prompt"),
+		prompt.OptionPrefix("🌲 >>> "),
+	)
 	p.Run()
 }
