@@ -48,7 +48,7 @@ func LoadConfig() (Config, error) {
 type EvergreenYamlConfiguration struct {
 	BaseUrl  string    `yaml:"ui_server_host"`
 	ApiKey   string    `yaml:"api_key"`
-	User     string    `yaml:"User"`
+	User     string    `yaml:"user"`
 	Projects []Project `yaml:"projects"`
 }
 
