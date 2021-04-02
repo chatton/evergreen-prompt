@@ -1,44 +1,58 @@
 package flagutil
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 )
 
+// pattern used to split flags from input string.
+var flagsPattern *regexp.Regexp
+
+func init() {
+	// split on spaces but not when between quotes, this allows for the description
+	// field or any quoted fields to treated the same way.
+	// https://stackoverflow.com/questions/47489745/splitting-a-string-at-space-except-inside-quotation-marks/47490643#47490643
+	flagsPattern = regexp.MustCompile(`[^\s"]+|"([^"]*)"`)
+}
+
 func GetBuildVariantValue(s string) string {
-	return ExtractFlagValue("--buildvariant", s)
+	if bv, ok := ExtractFlags(s, "patch")["--buildvariant"]; ok {
+		return bv
+	}
+	return ""
 }
 
 func GetTaskValue(s string) string {
-	return ExtractFlagValue("--task", s)
+	if task, ok := ExtractFlags(s, "patch")["--task"]; ok {
+		return task
+	}
+	return ""
 }
 
 func GetDescriptionValue(s string) string {
-	return ExtractFlagValue("--description", s)
+	if description, ok := ExtractFlags(s, "patch")["--description"]; ok {
+		return description
+	}
+	return ""
 }
 
 func GetPriorityValue(s string) string {
-	return ExtractFlagValue("--priority", s)
+	if priority, ok := ExtractFlags(s, "patch")["--priority"]; ok {
+		return priority
+	}
+	return ""
 }
 
 func GetProjectValue(s string) string {
-	return ExtractFlagValue("--project", s)
+	if project, ok := ExtractFlags(s, "patch")["--project"]; ok {
+		return project
+	}
+	return ""
 }
 
 func HasSpecifiedUncommitted(s string) bool {
-	return strings.Contains(s, "--uncommitted")
-}
-
-func ExtractFlagValue(flag, text string) string {
-	pattern := fmt.Sprintf(`%s\s+(["a-z0-9_\s]+)`, flag)
-	r := regexp.MustCompile(pattern)
-	allMatches := r.FindStringSubmatch(text)
-
-	if len(allMatches) != 2 {
-		return ""
-	}
-	return strings.TrimRight(allMatches[1], " ")
+	_, ok := ExtractFlags(s, "patch")["--uncommitted"]
+	return ok
 }
 
 // ExtractFlags converts a string with the given prefix into a map[string]string
@@ -50,7 +64,7 @@ func ExtractFlags(s, prefix string) map[string]string {
 
 	flagsOnly := strings.TrimLeft(s, prefix)
 	flagsOnly = strings.TrimSpace(flagsOnly)
-	splitString := strings.Split(flagsOnly, " ")
+	splitString := flagsPattern.FindAllString(flagsOnly, -1)
 
 	var args []string
 	prevElement := ""
