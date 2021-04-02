@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -63,11 +64,16 @@ func (e *Executor) handleEvergreenPatch(s string) {
 	fmt.Println(string(out))
 
 	if priority := flags.GetPriorityValue(s); priority != "" {
+		p, err := strconv.Atoi(priority)
+		if err != nil {
+			fmt.Printf("could not convert priority [%s] to an integer!\n", priority)
+		}
+
 		id := getPatchIdFromCliOutput(string(out))
 		// set priority of patch
-		_, err := e.client.PatchPatch(id, patch.Body{Priority: 10})
+		_, err = e.client.PatchPatch(id, patch.Body{Priority: p})
 		if err != nil {
-			panic(err)
+			fmt.Printf("error updating patch priority: %s\n", err)
 		}
 	}
 

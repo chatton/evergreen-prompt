@@ -105,14 +105,10 @@ func (c *EvergreenClient) PatchPatch(patchId string, body patch.Body) ([]string,
 		return nil, err
 	}
 
-	b, err := c.patch(fmt.Sprintf("rest/v2/patches/%s", patchId), bytes)
+	_, err = c.patch(fmt.Sprintf("rest/v2/patches/%s", patchId), bytes)
 	if err != nil {
-		fmt.Println("ERR")
-		fmt.Println(string(b))
 		return nil, err
 	}
 
-	fmt.Println("OK")
-	fmt.Println(string(b))
 	return nil, nil
 }
