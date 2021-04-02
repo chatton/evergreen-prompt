@@ -36,6 +36,8 @@ func (e *Executor) Execute(in string) {
 
 		if project := flags.GetProjectValue(in); project != "" {
 			args = append(args, "-p", project)
+		} else if e.client.DefaultProject != "" {
+			args = append(args, "-p", e.client.DefaultProject)
 		}
 
 		if flags.HasSpecifiedUncommitted(in) {
@@ -70,9 +72,8 @@ func (e *Executor) Execute(in string) {
 		}
 		fmt.Println(string(out))
 
-		id := getPatchIdFromCliOutput(string(out))
-
 		if priority := flags.GetPriorityValue(in); priority != "" {
+			id := getPatchIdFromCliOutput(string(out))
 			// set priority of patch
 			_, err := e.client.PatchPatch(id, patch.Body{Priority: 10})
 			if err != nil {

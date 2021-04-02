@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
-	"path"
 )
 
 type EvergreenClient struct {
@@ -20,29 +18,7 @@ type EvergreenClient struct {
 
 	projects       []string
 	currentProject string
-	ActiveProject  string
-}
-
-type Config struct {
-	User    string `json:"user"`
-	BaseUrl string `json:"baseUrl"`
-	ApiKey  string `json:"apiKey"`
-}
-
-// LoadConfig loads the config file that contains the user, baseurl and apikey
-// required to interact with the evergreen api.
-func LoadConfig() (Config, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return Config{}, err
-	}
-	configFilePath := path.Join(home, ".evergreen-prompt.json")
-	bytes, err := ioutil.ReadFile(configFilePath)
-	config := Config{}
-	if err := json.Unmarshal(bytes, &config); err != nil {
-		return Config{}, err
-	}
-	return config, nil
+	DefaultProject string
 }
 
 func NewEvergreenClient() (*EvergreenClient, error) {
@@ -55,11 +31,12 @@ func NewEvergreenClient() (*EvergreenClient, error) {
 
 func newEvergreenClientFromConfig(config Config) *EvergreenClient {
 	return &EvergreenClient{
-		apiKey:   config.ApiKey,
-		username: config.User,
-		baseUrl:  config.BaseUrl,
-		client:   &http.Client{},
-		projects: nil,
+		apiKey:         config.ApiKey,
+		username:       config.User,
+		baseUrl:        config.BaseUrl,
+		client:         &http.Client{},
+		projects:       nil,
+		DefaultProject: config.DefaultProject,
 	}
 }
 
