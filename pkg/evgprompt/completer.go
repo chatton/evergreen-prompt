@@ -3,7 +3,7 @@ package evgprompt
 import (
 	"chatton.com/evergreen-prompt/pkg/evergreen"
 	"chatton.com/evergreen-prompt/pkg/evergreen/client"
-	"chatton.com/evergreen-prompt/pkg/util/flagutil"
+	"chatton.com/evergreen-prompt/pkg/util/flags"
 	"github.com/c-bata/go-prompt"
 	"strings"
 )
@@ -51,17 +51,8 @@ func (c *Completer) Complete(d prompt.Document) []prompt.Suggest {
 		return nil
 	}
 
-	//if getLastWord(d) == "--uncommitted" {
-	//	return nil
-	//}
-
 	if strings.HasPrefix(d.TextBeforeCursor(), "patch") {
 		return patchSuggestions(d)
-	}
-
-	// don't display set-project if it has already been set.
-	if strings.Contains(d.TextBeforeCursor(), "set-project") {
-		return nil
 	}
 
 	return prompt.FilterFuzzy([]prompt.Suggest{
@@ -77,7 +68,7 @@ func patchSuggestions(d prompt.Document) []prompt.Suggest {
 	var suggestions []prompt.Suggest
 
 	// we only want to show suggestions when they have not yet been specified.
-	if flagutil.GetTaskValue(d.TextBeforeCursor()) == "" {
+	if flags.GetTaskValue(d.TextBeforeCursor()) == "" {
 		suggestions = append(suggestions,
 			prompt.Suggest{
 				Text:        "--task",
@@ -85,7 +76,7 @@ func patchSuggestions(d prompt.Document) []prompt.Suggest {
 			})
 	}
 
-	if flagutil.GetBuildVariantValue(d.TextBeforeCursor()) == "" {
+	if flags.GetBuildVariantValue(d.TextBeforeCursor()) == "" {
 		suggestions = append(suggestions,
 			prompt.Suggest{
 				Text:        "--buildvariant",
@@ -93,7 +84,7 @@ func patchSuggestions(d prompt.Document) []prompt.Suggest {
 			})
 	}
 
-	if flagutil.GetDescriptionValue(d.TextBeforeCursor()) == "" {
+	if flags.GetDescriptionValue(d.TextBeforeCursor()) == "" {
 		if !strings.Contains(d.TextBeforeCursor(), "--description") {
 			suggestions = append(suggestions,
 				prompt.Suggest{
@@ -103,7 +94,7 @@ func patchSuggestions(d prompt.Document) []prompt.Suggest {
 		}
 	}
 
-	if flagutil.GetPriorityValue(d.TextBeforeCursor()) == "" {
+	if flags.GetPriorityValue(d.TextBeforeCursor()) == "" {
 		if !strings.Contains(d.TextBeforeCursor(), "--priority") {
 			suggestions = append(suggestions,
 				prompt.Suggest{
@@ -113,7 +104,7 @@ func patchSuggestions(d prompt.Document) []prompt.Suggest {
 		}
 	}
 
-	if !flagutil.HasSpecifiedUncommitted(d.TextBeforeCursor()) {
+	if !flags.HasSpecifiedUncommitted(d.TextBeforeCursor()) {
 		suggestions = append(suggestions,
 			prompt.Suggest{
 				Text:        "--uncommitted",
@@ -121,7 +112,7 @@ func patchSuggestions(d prompt.Document) []prompt.Suggest {
 			})
 	}
 
-	if flagutil.GetProjectValue(d.TextBeforeCursor()) == "" {
+	if flags.GetProjectValue(d.TextBeforeCursor()) == "" {
 		suggestions = append(suggestions,
 			prompt.Suggest{
 				Text:        "--project",
@@ -153,9 +144,9 @@ func (c *Completer) getTaskSuggestions(d prompt.Document) []prompt.Suggest {
 
 	// if we are getting the task and the buildvariant already specified, we need to show
 	// only the tasks that contain this build varient otherwise we can show all the tasks.
-	buildvariantValue := flagutil.GetBuildVariantValue(d.TextBeforeCursor())
+	buildvariantValue := flags.GetBuildVariantValue(d.TextBeforeCursor())
 
-	if buildvariantValue == ""  {
+	if buildvariantValue == "" {
 		for _, t := range c.config.Tasks {
 			suggestions = append(suggestions, prompt.Suggest{
 				Text: t.Name,
@@ -182,7 +173,7 @@ func (c *Completer) getBuildVariantSuggestions(d prompt.Document) []prompt.Sugge
 
 	// if we are getting the build variant and the task is already specified, we need to show
 	// only the build variants that contain this task, otherwise we can show all the buildvariants.
-	taskValue := flagutil.GetTaskValue(d.TextBeforeCursor())
+	taskValue := flags.GetTaskValue(d.TextBeforeCursor())
 
 	if taskValue == "" {
 		for _, bv := range c.config.BuildVariants {

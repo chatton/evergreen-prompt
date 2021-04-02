@@ -1,4 +1,4 @@
-package flagutil
+package flags
 
 import (
 	"github.com/go-playground/assert/v2"
@@ -39,7 +39,7 @@ func TestExtractFlags(t *testing.T) {
 
 	t.Run("Test even number of values", func(t *testing.T) {
 		input := "patch --task this_is_my_task --buildvariant this_is_my_bv"
-		flags := ExtractFlags(input, "patch")
+		flags := extractFlags(input, "patch")
 
 		assert.Equal(t, "this_is_my_task", flags["--task"])
 		assert.Equal(t, "this_is_my_bv", flags["--buildvariant"])
@@ -47,7 +47,7 @@ func TestExtractFlags(t *testing.T) {
 
 	t.Run("Test with flags that have no value as last item", func(t *testing.T) {
 		input := "patch --task this_is_my_task --buildvariant this_is_my_bv --uncommited"
-		flags := ExtractFlags(input, "patch")
+		flags := extractFlags(input, "patch")
 
 		assert.Equal(t, "this_is_my_task", flags["--task"])
 		assert.Equal(t, "this_is_my_bv", flags["--buildvariant"])
@@ -56,7 +56,7 @@ func TestExtractFlags(t *testing.T) {
 
 	t.Run("Test with flags that have no value as middle item", func(t *testing.T) {
 		input := "patch --task this_is_my_task --buildvariant this_is_my_bv --uncommited --priority 100"
-		flags := ExtractFlags(input, "patch")
+		flags := extractFlags(input, "patch")
 
 		assert.Equal(t, "this_is_my_task", flags["--task"])
 		assert.Equal(t, "this_is_my_bv", flags["--buildvariant"])

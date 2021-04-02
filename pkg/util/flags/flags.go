@@ -1,4 +1,4 @@
-package flagutil
+package flags
 
 import (
 	"regexp"
@@ -16,50 +16,50 @@ func init() {
 }
 
 func GetBuildVariantValue(s string) string {
-	if bv, ok := ExtractFlags(s, "patch")["--buildvariant"]; ok {
+	if bv, ok := extractFlags(s, "patch")["--buildvariant"]; ok {
 		return bv
 	}
 	return ""
 }
 
 func GetTaskValue(s string) string {
-	if task, ok := ExtractFlags(s, "patch")["--task"]; ok {
+	if task, ok := extractFlags(s, "patch")["--task"]; ok {
 		return task
 	}
 	return ""
 }
 
 func GetDescriptionValue(s string) string {
-	if description, ok := ExtractFlags(s, "patch")["--description"]; ok {
+	if description, ok := extractFlags(s, "patch")["--description"]; ok {
 		return description
 	}
 	return ""
 }
 
 func GetPriorityValue(s string) string {
-	if priority, ok := ExtractFlags(s, "patch")["--priority"]; ok {
+	if priority, ok := extractFlags(s, "patch")["--priority"]; ok {
 		return priority
 	}
 	return ""
 }
 
 func GetProjectValue(s string) string {
-	if project, ok := ExtractFlags(s, "patch")["--project"]; ok {
+	if project, ok := extractFlags(s, "patch")["--project"]; ok {
 		return project
 	}
 	return ""
 }
 
 func HasSpecifiedUncommitted(s string) bool {
-	_, ok := ExtractFlags(s, "patch")["--uncommitted"]
+	_, ok := extractFlags(s, "patch")["--uncommitted"]
 	return ok
 }
 
-// ExtractFlags converts a string with the given prefix into a map[string]string
+// extractFlags converts a string with the given prefix into a map[string]string
 // with the keys as the flags and the provided values as the map values.
 // if the flag does not require a value, an empty string will be set as the value
 // in the map/
-func ExtractFlags(s, prefix string) map[string]string {
+func extractFlags(s, prefix string) map[string]string {
 	flags := map[string]string{}
 
 	flagsOnly := strings.TrimLeft(s, prefix)

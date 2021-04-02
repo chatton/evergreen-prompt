@@ -3,7 +3,7 @@ package evgprompt
 import (
 	"chatton.com/evergreen-prompt/pkg/evergreen/client"
 	"chatton.com/evergreen-prompt/pkg/evergreen/patch"
-	"chatton.com/evergreen-prompt/pkg/util/flagutil"
+	"chatton.com/evergreen-prompt/pkg/util/flags"
 	"fmt"
 	"os"
 	"os/exec"
@@ -28,43 +28,35 @@ func (e *Executor) Execute(in string) {
 		os.Exit(0)
 	}
 
-	//if strings.HasPrefix(in, "set-project") {
-	//	split := strings.Split(in, " ")
-	//	project := split[1]
-	//	fmt.Println("setting active project to: " + project)
-	//	e.client.ActiveProject = project
-	//	return
-	//}
-
 	if strings.HasPrefix(in, "patch") {
 
 		args := []string{
 			"patch", "-f", "-y",
 		}
 
-		if project := flagutil.GetProjectValue(in); project != "" {
+		if project := flags.GetProjectValue(in); project != "" {
 			args = append(args, "-p", project)
 		}
 
-		if flagutil.HasSpecifiedUncommitted(in) {
+		if flags.HasSpecifiedUncommitted(in) {
 			args = append(args, "-u")
 		}
 
-		task := flagutil.GetTaskValue(in)
+		task := flags.GetTaskValue(in)
 		if task == "" {
 			fmt.Println("Task must be specified!")
 		}
 
 		args = append(args, "-t", task)
 
-		buildvariant := flagutil.GetBuildVariantValue(in)
+		buildvariant := flags.GetBuildVariantValue(in)
 		if buildvariant == "" {
 			fmt.Println("Buildvariant must be specified!")
 		}
 
 		args = append(args, "-v", buildvariant)
 
-		description := flagutil.GetDescriptionValue(in)
+		description := flags.GetDescriptionValue(in)
 		if description == "" {
 			description = "evergreen-prompt task"
 		}
@@ -80,7 +72,7 @@ func (e *Executor) Execute(in string) {
 
 		id := getPatchIdFromCliOutput(string(out))
 
-		if priority := flagutil.GetPriorityValue(in); priority != "" {
+		if priority := flags.GetPriorityValue(in); priority != "" {
 			// set priority of patch
 			_, err := e.client.PatchPatch(id, patch.Body{Priority: 10})
 			if err != nil {
