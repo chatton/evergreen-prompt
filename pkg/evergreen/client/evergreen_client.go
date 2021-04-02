@@ -68,7 +68,9 @@ func (c *EvergreenClient) get(endpoint string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer req.Body.Close()
+	if req.Body != nil {
+		defer req.Body.Close()
+	}
 
 	c.setHeaders(req)
 
@@ -84,7 +86,9 @@ func (c *EvergreenClient) patch(endpoint string, body []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer req.Body.Close()
+	if req.Body != nil {
+		defer req.Body.Close()
+	}
 
 	c.setHeaders(req)
 

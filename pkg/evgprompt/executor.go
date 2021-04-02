@@ -28,18 +28,22 @@ func (e *Executor) Execute(in string) {
 		os.Exit(0)
 	}
 
-	if strings.HasPrefix(in, "set-project") {
-		split := strings.Split(in, " ")
-		project := split[1]
-		fmt.Println("setting active project to: " + project)
-		e.client.ActiveProject = project
-		return
-	}
+	//if strings.HasPrefix(in, "set-project") {
+	//	split := strings.Split(in, " ")
+	//	project := split[1]
+	//	fmt.Println("setting active project to: " + project)
+	//	e.client.ActiveProject = project
+	//	return
+	//}
 
 	if strings.HasPrefix(in, "patch") {
 
 		args := []string{
-			"patch", "-p", e.client.ActiveProject, "-f",
+			"patch", "-f", "-y",
+		}
+
+		if project := flagutil.GetProjectValue(in); project != "" {
+			args = append(args, "-p", project)
 		}
 
 		if flagutil.HasSpecifiedUncommitted(in) {
@@ -69,6 +73,7 @@ func (e *Executor) Execute(in string) {
 
 		out, err := exec.Command("evergreen", args...).Output()
 		if err != nil {
+			fmt.Println(string(out))
 			panic(err)
 		}
 		fmt.Println(string(out))

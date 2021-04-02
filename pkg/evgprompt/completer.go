@@ -31,7 +31,7 @@ func getLastWord(d prompt.Document) string {
 }
 
 func (c *Completer) Complete(d prompt.Document) []prompt.Suggest {
-	if getLastWord(d) == "set-project" {
+	if getLastWord(d) == "--project" {
 		return prompt.FilterFuzzy(c.projectSuggestions(), d.GetWordBeforeCursor(), true)
 	}
 
@@ -68,10 +68,6 @@ func (c *Completer) Complete(d prompt.Document) []prompt.Suggest {
 		{
 			Text:        "patch",
 			Description: "run an evergreen patch",
-		},
-		{
-			Text:        "set-project",
-			Description: "Choose the active project",
 		},
 	}, d.GetWordBeforeCursor(), true,
 	)
@@ -125,6 +121,14 @@ func patchSuggestions(d prompt.Document) []prompt.Suggest {
 			})
 	}
 
+	if flagutil.GetProjectValue(d.TextBeforeCursor()) == "" {
+		suggestions = append(suggestions,
+			prompt.Suggest{
+				Text:        "--project",
+				Description: "Specify the name of an existing evergreen project",
+			})
+	}
+
 	return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
 }
 
@@ -151,7 +155,7 @@ func (c *Completer) getTaskSuggestions(d prompt.Document) []prompt.Suggest {
 	// only the tasks that contain this build varient otherwise we can show all the tasks.
 	buildvariantValue := flagutil.GetBuildVariantValue(d.TextBeforeCursor())
 
-	if buildvariantValue == "" {
+	if buildvariantValue == ""  {
 		for _, t := range c.config.Tasks {
 			suggestions = append(suggestions, prompt.Suggest{
 				Text: t.Name,
@@ -165,6 +169,11 @@ func (c *Completer) getTaskSuggestions(d prompt.Document) []prompt.Suggest {
 			Text: t.Name,
 		})
 	}
+
+	//suggestions = append(suggestions, prompt.Suggest{
+	//	Text: "all",
+	//})
+
 	return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
 }
 
@@ -189,6 +198,10 @@ func (c *Completer) getBuildVariantSuggestions(d prompt.Document) []prompt.Sugge
 			Text: bv.Name,
 		})
 	}
+
+	//suggestions = append(suggestions, prompt.Suggest{
+	//	Text: "all",
+	//})
 
 	return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
 }
