@@ -51,6 +51,10 @@ func (c *Completer) Complete(d prompt.Document) []prompt.Suggest {
 		return nil
 	}
 
+	//if getLastWord(d) == "--uncommitted" {
+	//	return nil
+	//}
+
 	if strings.HasPrefix(d.TextBeforeCursor(), "patch") {
 		return patchSuggestions(d)
 	}
@@ -94,18 +98,30 @@ func patchSuggestions(d prompt.Document) []prompt.Suggest {
 	}
 
 	if flagutil.GetDescriptionValue(d.TextBeforeCursor()) == "" {
-		suggestions = append(suggestions,
-			prompt.Suggest{
-				Text:        "--description",
-				Description: "Specify a description for the patch",
-			})
+		if !strings.Contains(d.TextBeforeCursor(), "--description") {
+			suggestions = append(suggestions,
+				prompt.Suggest{
+					Text:        "--description",
+					Description: "Specify a description for the patch",
+				})
+		}
 	}
 
-	if flagutil.GetDescriptionValue(d.TextBeforeCursor()) == "" {
+	if flagutil.GetPriorityValue(d.TextBeforeCursor()) == "" {
+		if !strings.Contains(d.TextBeforeCursor(), "--priority") {
+			suggestions = append(suggestions,
+				prompt.Suggest{
+					Text:        "--priority",
+					Description: "Specify the priority for the patch",
+				})
+		}
+	}
+
+	if !flagutil.HasSpecifiedUncommitted(d.TextBeforeCursor()) {
 		suggestions = append(suggestions,
 			prompt.Suggest{
-				Text:        "--priority",
-				Description: "Specify the priority for the patch",
+				Text:        "--uncommitted",
+				Description: "Include uncommitted changes",
 			})
 	}
 

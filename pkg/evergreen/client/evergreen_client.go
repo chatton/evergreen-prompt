@@ -68,9 +68,10 @@ func (c *EvergreenClient) get(endpoint string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer req.Body.Close()
 
-	req.Header.Set("Api-User", c.username)
-	req.Header.Set("Api-Key", c.apiKey)
+	c.setHeaders(req)
+
 	res, err := c.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -83,14 +84,20 @@ func (c *EvergreenClient) patch(endpoint string, body []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer req.Body.Close()
 
-	req.Header.Set("Api-User", c.username)
-	req.Header.Set("Api-Key", c.apiKey)
+	c.setHeaders(req)
+
 	res, err := c.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	return ioutil.ReadAll(res.Body)
+}
+
+func (c *EvergreenClient) setHeaders(req *http.Request) {
+	req.Header.Set("Api-User", c.username)
+	req.Header.Set("Api-Key", c.apiKey)
 }
 
 func (c *EvergreenClient) GetProjects() ([]string, error) {
@@ -117,11 +124,14 @@ func (c *EvergreenClient) PatchPatch(patchId string, body patch.Body) ([]string,
 		return nil, err
 	}
 
-	b, err := c.patch(fmt.Sprintf("rest/v1/patches/%s", patchId), bytes)
+	b, err := c.patch(fmt.Sprintf("rest/v2/patches/%s", patchId), bytes)
 	if err != nil {
+		fmt.Println("ERR")
+		fmt.Println(string(b))
 		return nil, err
 	}
 
-	fmt.Println(b)
+	fmt.Println("OK")
+	fmt.Println(string(b))
 	return nil, nil
 }

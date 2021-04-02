@@ -39,7 +39,11 @@ func (e *Executor) Execute(in string) {
 	if strings.HasPrefix(in, "patch") {
 
 		args := []string{
-			"patch", "-p", e.client.ActiveProject, "-f", "-u",
+			"patch", "-p", e.client.ActiveProject, "-f",
+		}
+
+		if flagutil.HasSpecifiedUncommitted(in) {
+			args = append(args, "-u")
 		}
 
 		task := flagutil.GetTaskValue(in)
@@ -73,7 +77,7 @@ func (e *Executor) Execute(in string) {
 
 		if priority := flagutil.GetPriorityValue(in); priority != "" {
 			// set priority of patch
-			_, err := e.client.PatchPatch(id, patch.Body{Priority: 50})
+			_, err := e.client.PatchPatch(id, patch.Body{Priority: 10})
 			if err != nil {
 				panic(err)
 			}
