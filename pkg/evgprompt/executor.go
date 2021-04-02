@@ -19,6 +19,60 @@ func NewExecutor(client *client.EvergreenClient) *Executor {
 	return &Executor{client: client}
 }
 
+func (e *Executor) handleEvergreenPatch(s string) {
+	args := []string{
+		"patch", "-f", "-y",
+	}
+
+	if project := flags.GetProjectValue(s); project != "" {
+		args = append(args, "-p", project)
+	} else if e.client.DefaultProject != "" {
+		args = append(args, "-p", e.client.DefaultProject)
+	}
+
+	if flags.HasSpecifiedUncommitted(s) {
+		args = append(args, "-u")
+	}
+
+	task := flags.GetTaskValue(s)
+	if task == "" {
+		fmt.Println("Task must be specified!")
+	}
+
+	args = append(args, "-t", task)
+
+	buildvariant := flags.GetBuildVariantValue(s)
+	if buildvariant == "" {
+		fmt.Println("Buildvariant must be specified!")
+	}
+
+	args = append(args, "-v", buildvariant)
+
+	description := flags.GetDescriptionValue(s)
+	if description == "" {
+		description = "evergreen-prompt task"
+	}
+
+	args = append(args, "-d", description)
+
+	out, err := exec.Command("evergreen", args...).Output()
+	if err != nil {
+		fmt.Println(string(out))
+		panic(err)
+	}
+	fmt.Println(string(out))
+
+	if priority := flags.GetPriorityValue(s); priority != "" {
+		id := getPatchIdFromCliOutput(string(out))
+		// set priority of patch
+		_, err := e.client.PatchPatch(id, patch.Body{Priority: 10})
+		if err != nil {
+			panic(err)
+		}
+	}
+
+}
+
 func (e *Executor) Execute(in string) {
 	if in == "" {
 		return
@@ -29,58 +83,7 @@ func (e *Executor) Execute(in string) {
 	}
 
 	if strings.HasPrefix(in, "patch") {
-
-		args := []string{
-			"patch", "-f", "-y",
-		}
-
-		if project := flags.GetProjectValue(in); project != "" {
-			args = append(args, "-p", project)
-		} else if e.client.DefaultProject != "" {
-			args = append(args, "-p", e.client.DefaultProject)
-		}
-
-		if flags.HasSpecifiedUncommitted(in) {
-			args = append(args, "-u")
-		}
-
-		task := flags.GetTaskValue(in)
-		if task == "" {
-			fmt.Println("Task must be specified!")
-		}
-
-		args = append(args, "-t", task)
-
-		buildvariant := flags.GetBuildVariantValue(in)
-		if buildvariant == "" {
-			fmt.Println("Buildvariant must be specified!")
-		}
-
-		args = append(args, "-v", buildvariant)
-
-		description := flags.GetDescriptionValue(in)
-		if description == "" {
-			description = "evergreen-prompt task"
-		}
-
-		args = append(args, "-d", description)
-
-		out, err := exec.Command("evergreen", args...).Output()
-		if err != nil {
-			fmt.Println(string(out))
-			panic(err)
-		}
-		fmt.Println(string(out))
-
-		if priority := flags.GetPriorityValue(in); priority != "" {
-			id := getPatchIdFromCliOutput(string(out))
-			// set priority of patch
-			_, err := e.client.PatchPatch(id, patch.Body{Priority: 10})
-			if err != nil {
-				panic(err)
-			}
-		}
-
+		e.handleEvergreenPatch(in)
 	}
 }
 
