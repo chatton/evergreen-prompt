@@ -30,7 +30,30 @@ func getLastWord(d prompt.Document) string {
 	return ""
 }
 
+// isPatchCommand returns true if the current command is a
+// patch command.
+func isPatchCommand(d prompt.Document) bool {
+	text := d.TextBeforeCursor()
+	text = strings.TrimSpace(text)
+	return strings.HasPrefix(text, "patch")
+}
+
 func (c *Completer) Complete(d prompt.Document) []prompt.Suggest {
+	if isPatchCommand(d) {
+		return c.patchSuggestions(d)
+	}
+
+	return prompt.FilterFuzzy([]prompt.Suggest{
+		{
+			Text:        "patch",
+			Description: "run an evergreen patch",
+		},
+	}, d.GetWordBeforeCursor(), true,
+	)
+}
+
+func (c *Completer) patchSuggestions(d prompt.Document) []prompt.Suggest {
+
 	if getLastWord(d) == "--project" {
 		return c.getProjectSuggestions(d)
 	}
@@ -51,20 +74,6 @@ func (c *Completer) Complete(d prompt.Document) []prompt.Suggest {
 		return nil
 	}
 
-	if strings.HasPrefix(d.TextBeforeCursor(), "patch") {
-		return patchSuggestions(d)
-	}
-
-	return prompt.FilterFuzzy([]prompt.Suggest{
-		{
-			Text:        "patch",
-			Description: "run an evergreen patch",
-		},
-	}, d.GetWordBeforeCursor(), true,
-	)
-}
-
-func patchSuggestions(d prompt.Document) []prompt.Suggest {
 	var suggestions []prompt.Suggest
 
 	// we only want to show suggestions when they have not yet been specified.
@@ -85,23 +94,19 @@ func patchSuggestions(d prompt.Document) []prompt.Suggest {
 	}
 
 	if flags.GetDescriptionValue(d.TextBeforeCursor()) == "" {
-		if !strings.Contains(d.TextBeforeCursor(), "--description") {
-			suggestions = append(suggestions,
-				prompt.Suggest{
-					Text:        "--description",
-					Description: "Specify a description for the patch",
-				})
-		}
+		suggestions = append(suggestions,
+			prompt.Suggest{
+				Text:        "--description",
+				Description: "Specify a description for the patch",
+			})
 	}
 
 	if flags.GetPriorityValue(d.TextBeforeCursor()) == "" {
-		if !strings.Contains(d.TextBeforeCursor(), "--priority") {
-			suggestions = append(suggestions,
-				prompt.Suggest{
-					Text:        "--priority",
-					Description: "Specify the priority for the patch",
-				})
-		}
+		suggestions = append(suggestions,
+			prompt.Suggest{
+				Text:        "--priority",
+				Description: "Specify the priority for the patch",
+			})
 	}
 
 	if !flags.HasSpecifiedUncommitted(d.TextBeforeCursor()) {
