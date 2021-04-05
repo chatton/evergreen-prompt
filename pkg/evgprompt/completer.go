@@ -32,7 +32,7 @@ func getLastWord(d prompt.Document) string {
 
 func (c *Completer) Complete(d prompt.Document) []prompt.Suggest {
 	if getLastWord(d) == "--project" {
-		return prompt.FilterFuzzy(c.projectSuggestions(), d.GetWordBeforeCursor(), true)
+		return c.getProjectSuggestions(d)
 	}
 
 	if getLastWord(d) == "--task" {
@@ -123,7 +123,7 @@ func patchSuggestions(d prompt.Document) []prompt.Suggest {
 	return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
 }
 
-func (c *Completer) projectSuggestions() []prompt.Suggest {
+func (c *Completer) getProjectSuggestions(d prompt.Document) []prompt.Suggest {
 	projects, err := c.client.GetProjects()
 	if err != nil {
 		panic(err)
@@ -136,7 +136,8 @@ func (c *Completer) projectSuggestions() []prompt.Suggest {
 		})
 	}
 
-	return suggestions
+	return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
+
 }
 
 func (c *Completer) getTaskSuggestions(d prompt.Document) []prompt.Suggest {
@@ -160,10 +161,6 @@ func (c *Completer) getTaskSuggestions(d prompt.Document) []prompt.Suggest {
 			Text: t.Name,
 		})
 	}
-
-	//suggestions = append(suggestions, prompt.Suggest{
-	//	Text: "all",
-	//})
 
 	return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
 }
@@ -189,10 +186,6 @@ func (c *Completer) getBuildVariantSuggestions(d prompt.Document) []prompt.Sugge
 			Text: bv.Name,
 		})
 	}
-
-	//suggestions = append(suggestions, prompt.Suggest{
-	//	Text: "all",
-	//})
 
 	return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
 }
