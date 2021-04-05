@@ -20,6 +20,11 @@ func NewExecutor(client *client.EvergreenClient) *Executor {
 	return &Executor{client: client}
 }
 
+func (e *Executor) handleAbortPatch(s string) {
+	patchId := flags.GetPatchId(s)
+	fmt.Println("Aborting task: " + patchId)
+}
+
 func (e *Executor) handleEvergreenPatch(s string) {
 	args := []string{
 		"patch", "-f", "-y",
@@ -88,7 +93,11 @@ func (e *Executor) Execute(in string) {
 		os.Exit(0)
 	}
 
-	if strings.HasPrefix(in, "patch") {
+	if strings.HasPrefix(in, "patch abort") {
+		e.handleAbortPatch(in)
+	}
+
+	if strings.HasPrefix(in, "patch start") {
 		e.handleEvergreenPatch(in)
 	}
 }

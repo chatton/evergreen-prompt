@@ -52,7 +52,7 @@ func (c *Completer) Complete(d prompt.Document) []prompt.Suggest {
 	)
 }
 
-func (c *Completer) patchSuggestions(d prompt.Document) []prompt.Suggest {
+func (c *Completer) startPatchSuggestions(d prompt.Document) []prompt.Suggest {
 
 	if getLastWord(d) == "--project" {
 		return c.getProjectSuggestions(d)
@@ -124,8 +124,30 @@ func (c *Completer) patchSuggestions(d prompt.Document) []prompt.Suggest {
 				Description: "Specify the name of an existing evergreen project",
 			})
 	}
-
 	return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
+
+}
+func (c *Completer) patchSuggestions(d prompt.Document) []prompt.Suggest {
+
+	text := d.TextBeforeCursor()
+	if strings.Contains(text, "start") {
+		return c.startPatchSuggestions(d)
+	}
+
+	if strings.Contains(text, "abort") {
+		return c.abortPatchSuggestions(d)
+	}
+
+	return prompt.FilterFuzzy([]prompt.Suggest{
+		{
+			Text:        "start",
+			Description: "Start a new patch",
+		},
+		{
+			Text:        "abort",
+			Description: "Abort an in progress patch",
+		},
+	}, d.GetWordBeforeCursor(), true)
 }
 
 func (c *Completer) getProjectSuggestions(d prompt.Document) []prompt.Suggest {
@@ -189,6 +211,41 @@ func (c *Completer) getBuildVariantSuggestions(d prompt.Document) []prompt.Sugge
 	for _, bv := range c.config.GetBuildVariantsThatTaskIsIn(taskValue) {
 		suggestions = append(suggestions, prompt.Suggest{
 			Text: bv.Name,
+		})
+	}
+
+	return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
+}
+
+func (c *Completer) abortPatchSuggestions(d prompt.Document) []prompt.Suggest {
+	var suggestions []prompt.Suggest
+	if getLastWord(d) == "abort" {
+		suggestions = append(suggestions,
+			prompt.Suggest{
+				Text:        "--patch-id",
+				Description: "Patch ID of the patch to abort.",
+			})
+		return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
+	}
+
+	patches, err := c.client.GetPatches()
+	if err != nil {
+		panic(err)
+	}
+
+	// if we have selected a patch id already,
+	// we should stop showing other patch ids!
+	lastWord := getLastWord(d)
+	for _, p := range patches {
+		if lastWord == p.PatchId {
+			return nil
+		}
+	}
+
+	for _, p := range patches {
+		suggestions = append(suggestions, prompt.Suggest{
+			Text:        p.PatchId,
+			Description: p.Description,
 		})
 	}
 

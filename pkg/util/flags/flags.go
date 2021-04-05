@@ -8,6 +8,9 @@ import (
 // pattern used to split flags from input string.
 var flagsPattern *regexp.Regexp
 
+const patchStart = "patch start"
+const patchAbort = "patch abort"
+
 func init() {
 	// split on spaces but not when between quotes, this allows for the description
 	// field or any quoted fields to treated the same way.
@@ -16,43 +19,50 @@ func init() {
 }
 
 func GetBuildVariantValue(s string) string {
-	if bv, ok := extractFlags(s, "patch")["--buildvariant"]; ok {
+	if bv, ok := extractFlags(s, patchStart)["--buildvariant"]; ok {
 		return bv
 	}
 	return ""
 }
 
 func GetTaskValue(s string) string {
-	if task, ok := extractFlags(s, "patch")["--task"]; ok {
+	if task, ok := extractFlags(s, patchStart)["--task"]; ok {
 		return task
 	}
 	return ""
 }
 
 func GetDescriptionValue(s string) string {
-	if description, ok := extractFlags(s, "patch")["--description"]; ok {
+	if description, ok := extractFlags(s, patchStart)["--description"]; ok {
 		return description
 	}
 	return ""
 }
 
 func GetPriorityValue(s string) string {
-	if priority, ok := extractFlags(s, "patch")["--priority"]; ok {
+	if priority, ok := extractFlags(s, patchStart)["--priority"]; ok {
 		return priority
 	}
 	return ""
 }
 
 func GetProjectValue(s string) string {
-	if project, ok := extractFlags(s, "patch")["--project"]; ok {
+	if project, ok := extractFlags(s, patchStart)["--project"]; ok {
 		return project
 	}
 	return ""
 }
 
 func HasSpecifiedUncommitted(s string) bool {
-	_, ok := extractFlags(s, "patch")["--uncommitted"]
+	_, ok := extractFlags(s, patchStart)["--uncommitted"]
 	return ok
+}
+
+func GetPatchId(s string) string {
+	if patchId, ok := extractFlags(s, patchAbort)["--patch-id"]; ok {
+		return patchId
+	}
+	return ""
 }
 
 // extractFlags converts a string with the given prefix into a map[string]string

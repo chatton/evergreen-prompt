@@ -18,6 +18,8 @@ type EvergreenClient struct {
 
 	projects       []string
 	currentProject string
+
+	currentPatches []patch.Patch
 	DefaultProject string
 }
 
@@ -111,4 +113,32 @@ func (c *EvergreenClient) PatchPatch(patchId string, body patch.Body) ([]string,
 	}
 
 	return nil, nil
+}
+
+func (c *EvergreenClient) GetPatches() ([]patch.Patch, error) {
+	if c.currentPatches != nil {
+		return c.currentPatches, nil
+	}
+
+	b, err := c.get(fmt.Sprintf("rest/v2/users/%s/patches", c.username))
+	if err != nil {
+		return []patch.Patch{}, err
+	}
+
+	var result []patch.Patch
+
+	var patches []patch.Patch
+	if err := json.Unmarshal(b, &patches); err != nil {
+		return []patch.Patch{}, err
+	}
+
+	// only return the patches that are for the active project.
+	for _, p := range patches {
+		if p.ProjectId == c.DefaultProject {
+			result = append(result, p)
+		}
+	}
+
+	c.currentPatches = result
+	return result, err
 }
