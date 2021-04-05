@@ -46,10 +46,11 @@ func LoadConfig() (Config, error) {
 }
 
 type EvergreenYamlConfiguration struct {
-	BaseUrl  string    `yaml:"ui_server_host"`
-	ApiKey   string    `yaml:"api_key"`
-	User     string    `yaml:"user"`
-	Projects []Project `yaml:"projects"`
+	BaseUrl              string            `yaml:"ui_server_host"`
+	ApiKey               string            `yaml:"api_key"`
+	User                 string            `yaml:"user"`
+	Projects             []Project         `yaml:"projects"`
+	ProjectsForDirectory map[string]string `yaml:"projects_for_directory"`
 }
 
 type Project struct {
@@ -58,24 +59,38 @@ type Project struct {
 	ProjectsForDirectory map[string]string `yaml:"projects_for_directory"`
 }
 
+func (c EvergreenYamlConfiguration) getProjectForDirectory(directory string) string {
+	for k, v := range c.ProjectsForDirectory {
+		if k == directory {
+			fmt.Printf("Current directory is associated with project [%s], updating active project.\n", v)
+			return v
+		}
+	}
+
+	for _, p := range c.Projects {
+		if p.Default {
+			fmt.Printf("Default project found [%s].\n", p.Name)
+			return p.Name
+		}
+	}
+	return ""
+}
+
 func loadConfigFromEvergreenYaml(fileBytes []byte) (Config, error) {
 	evgConfig := EvergreenYamlConfiguration{}
 	if err := yaml.Unmarshal(fileBytes, &evgConfig); err != nil {
 		return Config{}, err
 	}
 
-	defaultProject := ""
-	for _, p := range evgConfig.Projects {
-		if p.Default {
-			defaultProject = p.Name
-			break
-		}
+	currentDirectory, err := os.Getwd()
+	if err != nil {
+		return Config{}, err
 	}
 
 	return Config{
 		User:           evgConfig.User,
 		BaseUrl:        evgConfig.BaseUrl,
 		ApiKey:         evgConfig.ApiKey,
-		DefaultProject: defaultProject,
+		DefaultProject: evgConfig.getProjectForDirectory(currentDirectory),
 	}, nil
 }
