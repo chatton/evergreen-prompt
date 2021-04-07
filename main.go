@@ -4,7 +4,6 @@ import (
 	"chatton.com/evergreen-prompt/pkg/evergreen"
 	"chatton.com/evergreen-prompt/pkg/evergreen/client"
 	"chatton.com/evergreen-prompt/pkg/evgprompt"
-	"fmt"
 	"github.com/c-bata/go-prompt"
 )
 
@@ -14,7 +13,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer fmt.Println("Bye!")
 
 	c, err := client.NewEvergreenClient()
 	if err != nil {

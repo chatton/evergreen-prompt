@@ -8,7 +8,7 @@ import (
 // pattern used to split flags from input string.
 var flagsPattern *regexp.Regexp
 
-const patchStart = "patch start"
+const patchCreate = "patch create"
 const patchAbort = "patch abort"
 
 func init() {
@@ -19,42 +19,42 @@ func init() {
 }
 
 func GetBuildVariantValue(s string) string {
-	if bv, ok := extractFlags(s, patchStart)["--buildvariant"]; ok {
+	if bv, ok := extractFlags(s, patchCreate)["--buildvariant"]; ok {
 		return bv
 	}
 	return ""
 }
 
 func GetTaskValue(s string) string {
-	if task, ok := extractFlags(s, patchStart)["--task"]; ok {
+	if task, ok := extractFlags(s, patchCreate)["--task"]; ok {
 		return task
 	}
 	return ""
 }
 
 func GetDescriptionValue(s string) string {
-	if description, ok := extractFlags(s, patchStart)["--description"]; ok {
+	if description, ok := extractFlags(s, patchCreate)["--description"]; ok {
 		return description
 	}
 	return ""
 }
 
 func GetPriorityValue(s string) string {
-	if priority, ok := extractFlags(s, patchStart)["--priority"]; ok {
+	if priority, ok := extractFlags(s, patchCreate)["--priority"]; ok {
 		return priority
 	}
 	return ""
 }
 
 func GetProjectValue(s string) string {
-	if project, ok := extractFlags(s, patchStart)["--project"]; ok {
+	if project, ok := extractFlags(s, patchCreate)["--project"]; ok {
 		return project
 	}
 	return ""
 }
 
 func HasSpecifiedUncommitted(s string) bool {
-	_, ok := extractFlags(s, patchStart)["--uncommitted"]
+	_, ok := extractFlags(s, patchCreate)["--uncommitted"]
 	return ok
 }
 
@@ -68,7 +68,7 @@ func GetPatchId(s string) string {
 // extractFlags converts a string with the given prefix into a map[string]string
 // with the keys as the flags and the provided values as the map values.
 // if the flag does not require a value, an empty string will be set as the value
-// in the map/
+// in the map.
 func extractFlags(s, prefix string) map[string]string {
 	flags := map[string]string{}
 

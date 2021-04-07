@@ -38,16 +38,16 @@ func TestProjectFlagExtraction(t *testing.T) {
 func TestExtractFlags(t *testing.T) {
 
 	t.Run("Test even number of values", func(t *testing.T) {
-		input := "patch start --task this_is_my_task --buildvariant this_is_my_bv"
-		flags := extractFlags(input, "patch start")
+		input := "patch create --task this_is_my_task --buildvariant this_is_my_bv"
+		flags := extractFlags(input, patchCreate)
 
 		assert.Equal(t, "this_is_my_task", flags["--task"])
 		assert.Equal(t, "this_is_my_bv", flags["--buildvariant"])
 	})
 
 	t.Run("Test with flags that have no value as last item", func(t *testing.T) {
-		input := "patch start --task this_is_my_task --buildvariant this_is_my_bv --uncommited"
-		flags := extractFlags(input, "patch start")
+		input := "patch create --task this_is_my_task --buildvariant this_is_my_bv --uncommited"
+		flags := extractFlags(input, patchCreate)
 
 		assert.Equal(t, "this_is_my_task", flags["--task"])
 		assert.Equal(t, "this_is_my_bv", flags["--buildvariant"])
@@ -55,19 +55,13 @@ func TestExtractFlags(t *testing.T) {
 	})
 
 	t.Run("Test with flags that have no value as middle item", func(t *testing.T) {
-		input := "patch start --task this_is_my_task --buildvariant this_is_my_bv --uncommited --priority 100"
-		flags := extractFlags(input, "patch start")
+		input := "patch create --task this_is_my_task --buildvariant this_is_my_bv --uncommited --priority 100"
+		flags := extractFlags(input, patchCreate)
 
 		assert.Equal(t, "this_is_my_task", flags["--task"])
 		assert.Equal(t, "this_is_my_bv", flags["--buildvariant"])
 		assert.Equal(t, "", flags["--uncommited"])
 		assert.Equal(t, "100", flags["--priority"])
-	})
-
-	t.Run("Test abort patch", func(t *testing.T) {
-		input := "patch abort --patch-id 1234567"
-		flags := extractFlags(input, patchAbort)
-		assert.Equal(t, "1234567", flags["--patch-id"])
 	})
 
 }

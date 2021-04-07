@@ -20,12 +20,7 @@ func NewExecutor(client *client.EvergreenClient) *Executor {
 	return &Executor{client: client}
 }
 
-func (e *Executor) handleAbortPatch(s string) {
-	patchId := flags.GetPatchId(s)
-	fmt.Println("Aborting task: " + patchId)
-}
-
-func (e *Executor) handleEvergreenPatch(s string) {
+func (e *Executor) handleEvergreenPatchCreate(s string) {
 	args := []string{
 		"patch", "-f", "-y",
 	}
@@ -62,16 +57,16 @@ func (e *Executor) handleEvergreenPatch(s string) {
 	args = append(args, "-d", description)
 
 	out, err := exec.Command("evergreen", args...).Output()
-	if err != nil {
-		fmt.Println(string(out))
-		panic(err)
-	}
 	fmt.Println(string(out))
+	if err != nil {
+		return
+	}
 
 	if priority := flags.GetPriorityValue(s); priority != "" {
 		p, err := strconv.Atoi(priority)
 		if err != nil {
 			fmt.Printf("could not convert priority [%s] to an integer!\n", priority)
+			return
 		}
 
 		id := getPatchIdFromCliOutput(string(out))
@@ -79,6 +74,7 @@ func (e *Executor) handleEvergreenPatch(s string) {
 		_, err = e.client.PatchPatch(id, patch.Body{Priority: p})
 		if err != nil {
 			fmt.Printf("error updating patch priority: %s\n", err)
+			return
 		}
 	}
 
@@ -89,16 +85,12 @@ func (e *Executor) Execute(in string) {
 		return
 	}
 	if in == "quit" || in == "exit" {
-		fmt.Printf("Bye!")
+		fmt.Printf("Bye!\n")
 		os.Exit(0)
 	}
 
-	if strings.HasPrefix(in, "patch abort") {
-		e.handleAbortPatch(in)
-	}
-
-	if strings.HasPrefix(in, "patch start") {
-		e.handleEvergreenPatch(in)
+	if strings.HasPrefix(in, "patch create") {
+		e.handleEvergreenPatchCreate(in)
 	}
 }
 
