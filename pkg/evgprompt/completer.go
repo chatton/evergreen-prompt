@@ -52,7 +52,7 @@ func (c *Completer) Complete(d prompt.Document) []prompt.Suggest {
 	)
 }
 
-func (c *Completer) startPatchSuggestions(d prompt.Document) []prompt.Suggest {
+func (c *Completer) createPatchSuggestions(d prompt.Document) []prompt.Suggest {
 
 	if getLastWord(d) == "--project" {
 		return c.getProjectSuggestions(d)
@@ -130,22 +130,14 @@ func (c *Completer) startPatchSuggestions(d prompt.Document) []prompt.Suggest {
 func (c *Completer) patchSuggestions(d prompt.Document) []prompt.Suggest {
 
 	text := d.TextBeforeCursor()
-	if strings.Contains(text, "start") {
-		return c.startPatchSuggestions(d)
-	}
-
-	if strings.Contains(text, "abort") {
-		return c.abortPatchSuggestions(d)
+	if strings.Contains(text, "create") {
+		return c.createPatchSuggestions(d)
 	}
 
 	return prompt.FilterFuzzy([]prompt.Suggest{
 		{
-			Text:        "start",
-			Description: "Start a new patch",
-		},
-		{
-			Text:        "abort",
-			Description: "Abort an in progress patch",
+			Text:        "create",
+			Description: "Create a new patch",
 		},
 	}, d.GetWordBeforeCursor(), true)
 }
