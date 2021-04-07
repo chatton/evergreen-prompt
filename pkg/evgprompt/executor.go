@@ -47,6 +47,11 @@ func (e *Executor) handleEvergreenPatchCreate(s string) {
 		fmt.Println("Buildvariant must be specified!")
 	}
 
+	// p is expected to be in the form of "Key=Value"
+	for _, p := range flags.GetAllParams(s) {
+		args = append(args, "--param", p)
+	}
+
 	args = append(args, "-v", buildvariant)
 
 	description := flags.GetDescriptionValue(s)

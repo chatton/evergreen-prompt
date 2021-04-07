@@ -19,58 +19,82 @@ func init() {
 }
 
 func GetBuildVariantValue(s string) string {
-	if bv, ok := extractFlags(s, patchCreate)["--buildvariant"]; ok {
+	flags := extractFlags(s, patchCreate)
+	if bv, ok := getValueFromFlagKey("--buildvariant", flags); ok {
 		return bv
 	}
 	return ""
 }
 
 func GetTaskValue(s string) string {
-	if task, ok := extractFlags(s, patchCreate)["--task"]; ok {
+	flags := extractFlags(s, patchCreate)
+	if task, ok := getValueFromFlagKey("--task", flags); ok {
 		return task
 	}
 	return ""
 }
 
 func GetDescriptionValue(s string) string {
-	if description, ok := extractFlags(s, patchCreate)["--description"]; ok {
+	flags := extractFlags(s, patchCreate)
+	if description, ok := getValueFromFlagKey("--description", flags); ok {
 		return description
 	}
 	return ""
 }
 
 func GetPriorityValue(s string) string {
-	if priority, ok := extractFlags(s, patchCreate)["--priority"]; ok {
+	flags := extractFlags(s, patchCreate)
+	if priority, ok := getValueFromFlagKey("--priority", flags); ok {
 		return priority
 	}
 	return ""
 }
 
 func GetProjectValue(s string) string {
-	if project, ok := extractFlags(s, patchCreate)["--project"]; ok {
+	flags := extractFlags(s, patchCreate)
+	if project, ok := getValueFromFlagKey("--project", flags); ok {
 		return project
 	}
 	return ""
 }
 
 func HasSpecifiedUncommitted(s string) bool {
-	_, ok := extractFlags(s, patchCreate)["--uncommitted"]
+	flags := extractFlags(s, patchCreate)
+	_, ok := getValueFromFlagKey("--uncommitted", flags)
 	return ok
 }
 
-func GetPatchId(s string) string {
-	if patchId, ok := extractFlags(s, patchAbort)["--patch-id"]; ok {
-		return patchId
+func GetAllParams(s string) []string {
+	flags := extractFlags(s, patchCreate)
+	var paramFlags []string
+	for _, f := range flags {
+		if f.key == "--param" {
+			paramFlags = append(paramFlags, f.value)
+		}
 	}
-	return ""
+	return paramFlags
+}
+
+func getValueFromFlagKey(key string, flags []flag) (string, bool) {
+	for _, f := range flags {
+		if f.key == key {
+			return f.value, true
+		}
+	}
+	return "", false
+}
+
+type flag struct {
+	key   string
+	value string
 }
 
 // extractFlags converts a string with the given prefix into a map[string]string
 // with the keys as the flags and the provided values as the map values.
 // if the flag does not require a value, an empty string will be set as the value
 // in the map.
-func extractFlags(s, prefix string) map[string]string {
-	flags := map[string]string{}
+func extractFlags(s, prefix string) []flag {
+	var flags []flag
 
 	flagsOnly := strings.TrimLeft(s, prefix)
 	flagsOnly = strings.TrimSpace(flagsOnly)
@@ -100,7 +124,10 @@ func extractFlags(s, prefix string) map[string]string {
 
 	// convert every element into a map
 	for i := 0; i < len(args); i += 2 {
-		flags[args[i]] = args[i+1]
+		flags = append(flags, flag{
+			key:   args[i],
+			value: args[i+1],
+		})
 	}
 
 	return flags

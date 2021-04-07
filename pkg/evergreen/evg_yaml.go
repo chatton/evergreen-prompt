@@ -10,6 +10,13 @@ type Configuration struct {
 	BuildVariants []BuildVariant `yaml:"buildvariants"`
 	Tasks         []Task         `yaml:"tasks"`
 	TaskGroups    []TaskGroup    `yaml:"task_groups"`
+	Parameters    []Parameter    `yaml:"parameters"`
+}
+
+type Parameter struct {
+	Key         string
+	Value       string
+	Description string
 }
 
 type Task struct {

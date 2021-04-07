@@ -66,6 +66,10 @@ func (c *Completer) createPatchSuggestions(d prompt.Document) []prompt.Suggest {
 		return c.getBuildVariantSuggestions(d)
 	}
 
+	if getLastWord(d) == "--param" {
+		return c.getParamSuggestions()
+	}
+
 	if getLastWord(d) == "--description" {
 		return nil
 	}
@@ -124,9 +128,18 @@ func (c *Completer) createPatchSuggestions(d prompt.Document) []prompt.Suggest {
 				Description: "Specify the name of an existing evergreen project",
 			})
 	}
+
+	// it's possible to add multiple params to a single command, so the field
+	// already existing doesn't mean we shouldn't show it.
+	suggestions = append(suggestions, prompt.Suggest{
+		Text:        "--param",
+		Description: "Specify a parameter for the evergreen patch",
+	})
+
 	return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
 
 }
+
 func (c *Completer) patchSuggestions(d prompt.Document) []prompt.Suggest {
 
 	text := d.TextBeforeCursor()
@@ -209,37 +222,51 @@ func (c *Completer) getBuildVariantSuggestions(d prompt.Document) []prompt.Sugge
 	return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
 }
 
-func (c *Completer) abortPatchSuggestions(d prompt.Document) []prompt.Suggest {
+func (c *Completer) getParamSuggestions() []prompt.Suggest {
 	var suggestions []prompt.Suggest
-	if getLastWord(d) == "abort" {
-		suggestions = append(suggestions,
-			prompt.Suggest{
-				Text:        "--patch-id",
-				Description: "Patch ID of the patch to abort.",
-			})
-		return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
-	}
 
-	patches, err := c.client.GetPatches()
-	if err != nil {
-		panic(err)
-	}
-
-	// if we have selected a patch id already,
-	// we should stop showing other patch ids!
-	lastWord := getLastWord(d)
-	for _, p := range patches {
-		if lastWord == p.PatchId {
-			return nil
-		}
-	}
-
-	for _, p := range patches {
+	for _, param := range c.config.Parameters {
 		suggestions = append(suggestions, prompt.Suggest{
-			Text:        p.PatchId,
-			Description: p.Description,
+			Text:        param.Key + "=" + param.Value,
+			Description: param.Description,
 		})
 	}
 
-	return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
+	return suggestions
 }
+
+//
+//func (c *Completer) abortPatchSuggestions(d prompt.Document) []prompt.Suggest {
+//	var suggestions []prompt.Suggest
+//	if getLastWord(d) == "abort" {
+//		suggestions = append(suggestions,
+//			prompt.Suggest{
+//				Text:        "--patch-id",
+//				Description: "Patch ID of the patch to abort.",
+//			})
+//		return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
+//	}
+//
+//	patches, err := c.client.GetPatches()
+//	if err != nil {
+//		panic(err)
+//	}
+//
+//	// if we have selected a patch id already,
+//	// we should stop showing other patch ids!
+//	lastWord := getLastWord(d)
+//	for _, p := range patches {
+//		if lastWord == p.PatchId {
+//			return nil
+//		}
+//	}
+//
+//	for _, p := range patches {
+//		suggestions = append(suggestions, prompt.Suggest{
+//			Text:        p.PatchId,
+//			Description: p.Description,
+//		})
+//	}
+//
+//	return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
+//}

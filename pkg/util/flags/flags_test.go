@@ -41,27 +41,41 @@ func TestExtractFlags(t *testing.T) {
 		input := "patch create --task this_is_my_task --buildvariant this_is_my_bv"
 		flags := extractFlags(input, patchCreate)
 
-		assert.Equal(t, "this_is_my_task", flags["--task"])
-		assert.Equal(t, "this_is_my_bv", flags["--buildvariant"])
+		task, _ := getValueFromFlagKey("--task", flags)
+		assert.Equal(t, "this_is_my_task", task)
+
+		bv, _ := getValueFromFlagKey("--buildvariant", flags)
+		assert.Equal(t, "this_is_my_bv", bv)
 	})
 
 	t.Run("Test with flags that have no value as last item", func(t *testing.T) {
 		input := "patch create --task this_is_my_task --buildvariant this_is_my_bv --uncommited"
 		flags := extractFlags(input, patchCreate)
 
-		assert.Equal(t, "this_is_my_task", flags["--task"])
-		assert.Equal(t, "this_is_my_bv", flags["--buildvariant"])
-		assert.Equal(t, "", flags["--uncommited"])
+		task, _ := getValueFromFlagKey("--task", flags)
+		assert.Equal(t, "this_is_my_task", task)
+		bv, _ := getValueFromFlagKey("--buildvariant", flags)
+		assert.Equal(t, "this_is_my_bv", bv)
+
+		_, ok := getValueFromFlagKey("--uncommited", flags)
+		assert.Equal(t, true, ok)
 	})
 
 	t.Run("Test with flags that have no value as middle item", func(t *testing.T) {
 		input := "patch create --task this_is_my_task --buildvariant this_is_my_bv --uncommited --priority 100"
 		flags := extractFlags(input, patchCreate)
 
-		assert.Equal(t, "this_is_my_task", flags["--task"])
-		assert.Equal(t, "this_is_my_bv", flags["--buildvariant"])
-		assert.Equal(t, "", flags["--uncommited"])
-		assert.Equal(t, "100", flags["--priority"])
+
+		task, _ := getValueFromFlagKey("--task", flags)
+		assert.Equal(t, "this_is_my_task", task)
+
+		bv, _ := getValueFromFlagKey("--buildvariant", flags)
+		assert.Equal(t, "this_is_my_bv", bv)
+		_, ok := getValueFromFlagKey("--uncommited", flags)
+		assert.Equal(t, true, ok)
+
+		priority, _ := getValueFromFlagKey("--priority", flags)
+		assert.Equal(t, "100", priority)
 	})
 
 }
