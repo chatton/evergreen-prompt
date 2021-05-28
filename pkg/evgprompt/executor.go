@@ -35,16 +35,15 @@ func (e *Executor) handleEvergreenPatchCreate(s string) {
 		args = append(args, "-u")
 	}
 
-	task := flags.GetTaskValue(s)
-	if task == "" {
-		fmt.Println("Task must be specified!")
+	tasks := flags.GetAllTasks(s)
+	if tasks == nil {
+		fmt.Println("Task mut be specified!")
+		return
 	}
 
-	args = append(args, "-t", task)
-
-	buildvariant := flags.GetBuildVariantValue(s)
-	if buildvariant == "" {
-		fmt.Println("Buildvariant must be specified!")
+	// specify each individual task as a separate argument.
+	for _, t := range tasks {
+		args = append(args, "-t", t)
 	}
 
 	// p is expected to be in the form of "Key=Value"
@@ -52,7 +51,15 @@ func (e *Executor) handleEvergreenPatchCreate(s string) {
 		args = append(args, "--param", p)
 	}
 
-	args = append(args, "-v", buildvariant)
+	allBvs := flags.GetAllBuildVariants(s)
+	for _, bv := range allBvs {
+		args = append(args, "-v", bv)
+	}
+
+	if len(allBvs) == 0 {
+		fmt.Println("Buildvariant must be specified!")
+		return
+	}
 
 	description := flags.GetDescriptionValue(s)
 	if description == "" {

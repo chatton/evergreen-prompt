@@ -9,7 +9,6 @@ import (
 var flagsPattern *regexp.Regexp
 
 const patchCreate = "patch create"
-const patchAbort = "patch abort"
 
 func init() {
 	// split on spaces but not when between quotes, this allows for the description
@@ -26,12 +25,28 @@ func GetBuildVariantValue(s string) string {
 	return ""
 }
 
+func GetAllBuildVariants(s string) []string {
+	flags := extractFlags(s, patchCreate)
+	if bvs, ok := getValuesWithFlagKey("--buildvariant", flags); ok {
+		return bvs
+	}
+	return nil
+}
+
 func GetTaskValue(s string) string {
 	flags := extractFlags(s, patchCreate)
 	if task, ok := getValueFromFlagKey("--task", flags); ok {
 		return task
 	}
 	return ""
+}
+
+func GetAllTasks(s string) []string {
+	flags := extractFlags(s, patchCreate)
+	if tasks, ok := getValuesWithFlagKey("--task", flags); ok {
+		return tasks
+	}
+	return nil
 }
 
 func GetDescriptionValue(s string) string {
@@ -82,6 +97,16 @@ func getValueFromFlagKey(key string, flags []flag) (string, bool) {
 		}
 	}
 	return "", false
+}
+
+func getValuesWithFlagKey(key string, flags []flag) ([]string, bool) {
+	var results []string
+	for _, f := range flags {
+		if f.key == key {
+			results = append(results, f.value)
+		}
+	}
+	return results, len(results) > 0
 }
 
 type flag struct {
