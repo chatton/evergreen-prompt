@@ -2,6 +2,7 @@ package flags
 
 import (
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -17,6 +18,41 @@ func init() {
 	flagsPattern = regexp.MustCompile(`[^\s"]+|"([^"]*)"`)
 }
 
+// Flags stores all of the values parsed from the command line flags
+type Flags struct {
+	BuildVariants []string
+	Tasks         []string
+	Description   string
+	Priority      int
+	Project       string
+	Uncommitted   bool
+	Params        map[string]string
+}
+
+// Parse accepts the command line input string and returns a struct
+// containing all of the values that were specified.
+func Parse(in string) (Flags, error) {
+	priorityStr := GetPriorityValue(in)
+	if priorityStr == "" {
+		priorityStr = "-1"
+	}
+
+	priority, err := strconv.Atoi(priorityStr)
+	if err != nil {
+		return Flags{}, err
+	}
+
+	return Flags{
+		BuildVariants: getAllBuildVariants(in),
+		Tasks:         getAllTasks(in),
+		Description:   getDescriptionValue(in),
+		Project:       getProjectValue(in),
+		Priority:      priority,
+		Uncommitted:   hasSpecifiedUncommitted(in),
+		Params:        getAllParams(in),
+	}, nil
+}
+
 func GetBuildVariantValue(s string) string {
 	flags := extractFlags(s, patchCreate)
 	if bv, ok := getValueFromFlagKey("--buildvariant", flags); ok {
@@ -25,7 +61,7 @@ func GetBuildVariantValue(s string) string {
 	return ""
 }
 
-func GetAllBuildVariants(s string) []string {
+func getAllBuildVariants(s string) []string {
 	flags := extractFlags(s, patchCreate)
 	if bvs, ok := getValuesWithFlagKey("--buildvariant", flags); ok {
 		return bvs
@@ -41,7 +77,7 @@ func GetTaskValue(s string) string {
 	return ""
 }
 
-func GetAllTasks(s string) []string {
+func getAllTasks(s string) []string {
 	flags := extractFlags(s, patchCreate)
 	if tasks, ok := getValuesWithFlagKey("--task", flags); ok {
 		return tasks
@@ -49,7 +85,7 @@ func GetAllTasks(s string) []string {
 	return nil
 }
 
-func GetDescriptionValue(s string) string {
+func getDescriptionValue(s string) string {
 	flags := extractFlags(s, patchCreate)
 	if description, ok := getValueFromFlagKey("--description", flags); ok {
 		return description
@@ -65,7 +101,7 @@ func GetPriorityValue(s string) string {
 	return ""
 }
 
-func GetProjectValue(s string) string {
+func getProjectValue(s string) string {
 	flags := extractFlags(s, patchCreate)
 	if project, ok := getValueFromFlagKey("--project", flags); ok {
 		return project
@@ -73,21 +109,21 @@ func GetProjectValue(s string) string {
 	return ""
 }
 
-func HasSpecifiedUncommitted(s string) bool {
+func hasSpecifiedUncommitted(s string) bool {
 	flags := extractFlags(s, patchCreate)
 	_, ok := getValueFromFlagKey("--uncommitted", flags)
 	return ok
 }
 
-func GetAllParams(s string) []string {
+func getAllParams(s string) map[string]string {
 	flags := extractFlags(s, patchCreate)
-	var paramFlags []string
+	params := map[string]string{}
 	for _, f := range flags {
 		if f.key == "--param" {
-			paramFlags = append(paramFlags, f.value)
+			params[f.key] = f.value
 		}
 	}
-	return paramFlags
+	return params
 }
 
 func getValueFromFlagKey(key string, flags []flag) (string, bool) {

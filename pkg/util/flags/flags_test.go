@@ -26,12 +26,12 @@ func TestTaskFlagExtraction(t *testing.T) {
 }
 
 func TestDescriptionFlagExtraction(t *testing.T) {
-	desc := GetDescriptionValue(`--description "this is my description"`)
+	desc := getDescriptionValue(`--description "this is my description"`)
 	assert.Equal(t, `"this is my description"`, desc)
 }
 
 func TestProjectFlagExtraction(t *testing.T) {
-	project := GetProjectValue("--project ops-manager-kubernetes")
+	project := getProjectValue("--project ops-manager-kubernetes")
 	assert.Equal(t, "ops-manager-kubernetes", project)
 }
 
@@ -64,7 +64,6 @@ func TestExtractFlags(t *testing.T) {
 	t.Run("Test with flags that have no value as middle item", func(t *testing.T) {
 		input := "patch create --task this_is_my_task --buildvariant this_is_my_bv --uncommited --priority 100"
 		flags := extractFlags(input, patchCreate)
-
 
 		task, _ := getValueFromFlagKey("--task", flags)
 		assert.Equal(t, "this_is_my_task", task)

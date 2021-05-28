@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
-	"strconv"
 	"strings"
 )
 
@@ -25,44 +24,48 @@ func (e *Executor) handleEvergreenPatchCreate(s string) {
 		"patch", "-f", "-y",
 	}
 
-	if project := flags.GetProjectValue(s); project != "" {
-		args = append(args, "-p", project)
+	input, err := flags.Parse(s)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	if input.Project != "" {
+		args = append(args, "-p", input.Project)
 	} else if e.client.DefaultProject != "" {
 		args = append(args, "-p", e.client.DefaultProject)
 	}
 
-	if flags.HasSpecifiedUncommitted(s) {
+	if input.Uncommitted {
 		args = append(args, "-u")
 	}
 
-	tasks := flags.GetAllTasks(s)
-	if tasks == nil {
+	if input.Tasks == nil {
 		fmt.Println("Task mut be specified!")
 		return
 	}
 
 	// specify each individual task as a separate argument.
-	for _, t := range tasks {
+	for _, t := range input.Tasks {
 		args = append(args, "-t", t)
 	}
 
 	// p is expected to be in the form of "Key=Value"
-	for _, p := range flags.GetAllParams(s) {
-		args = append(args, "--param", p)
+	for k, v := range input.Params {
+		args = append(args, "--param", k+"="+v)
 	}
 
-	allBvs := flags.GetAllBuildVariants(s)
-	for _, bv := range allBvs {
+	for _, bv := range input.BuildVariants {
 		args = append(args, "-v", bv)
 	}
 
-	if len(allBvs) == 0 {
+	if len(input.BuildVariants) == 0 {
 		fmt.Println("Buildvariant must be specified!")
 		return
 	}
 
-	description := flags.GetDescriptionValue(s)
-	if description == "" {
+	description := input.Description
+	if input.Description == "" {
 		description = "evergreen-prompt task"
 	}
 
@@ -74,22 +77,16 @@ func (e *Executor) handleEvergreenPatchCreate(s string) {
 		return
 	}
 
-	if priority := flags.GetPriorityValue(s); priority != "" {
-		p, err := strconv.Atoi(priority)
-		if err != nil {
-			fmt.Printf("could not convert priority [%s] to an integer!\n", priority)
-			return
-		}
-
+	// -1 means we didn't set a priority. Just use default.
+	if input.Priority != -1 {
 		id := getPatchIdFromCliOutput(string(out))
 		// set priority of patch
-		_, err = e.client.PatchPatch(id, patch.Body{Priority: p})
+		_, err = e.client.PatchPatch(id, patch.Body{Priority: input.Priority})
 		if err != nil {
 			fmt.Printf("error updating patch priority: %s\n", err)
 			return
 		}
 	}
-
 }
 
 func (e *Executor) Execute(in string) {

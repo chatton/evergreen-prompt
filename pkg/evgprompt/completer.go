@@ -52,7 +52,7 @@ func (c *Completer) Complete(d prompt.Document) []prompt.Suggest {
 	)
 }
 
-func (c *Completer) createPatchSuggestions(d prompt.Document) []prompt.Suggest {
+func (c *Completer) createPatchSuggestions(d prompt.Document, input flags.Flags) []prompt.Suggest {
 
 	if getLastWord(d) == "--project" {
 		return c.getProjectSuggestions(d)
@@ -92,7 +92,7 @@ func (c *Completer) createPatchSuggestions(d prompt.Document) []prompt.Suggest {
 			Description: "Specify a build variant",
 		})
 
-	if flags.GetDescriptionValue(d.TextBeforeCursor()) == "" {
+	if input.Description == "" {
 		suggestions = append(suggestions,
 			prompt.Suggest{
 				Text:        "--description",
@@ -100,7 +100,7 @@ func (c *Completer) createPatchSuggestions(d prompt.Document) []prompt.Suggest {
 			})
 	}
 
-	if flags.GetPriorityValue(d.TextBeforeCursor()) == "" {
+	if input.Priority == -1 {
 		suggestions = append(suggestions,
 			prompt.Suggest{
 				Text:        "--priority",
@@ -108,7 +108,7 @@ func (c *Completer) createPatchSuggestions(d prompt.Document) []prompt.Suggest {
 			})
 	}
 
-	if !flags.HasSpecifiedUncommitted(d.TextBeforeCursor()) {
+	if !input.Uncommitted {
 		suggestions = append(suggestions,
 			prompt.Suggest{
 				Text:        "--uncommitted",
@@ -116,7 +116,7 @@ func (c *Completer) createPatchSuggestions(d prompt.Document) []prompt.Suggest {
 			})
 	}
 
-	if flags.GetProjectValue(d.TextBeforeCursor()) == "" {
+	if input.Project == "" {
 		suggestions = append(suggestions,
 			prompt.Suggest{
 				Text:        "--project",
@@ -138,8 +138,12 @@ func (c *Completer) createPatchSuggestions(d prompt.Document) []prompt.Suggest {
 func (c *Completer) patchSuggestions(d prompt.Document) []prompt.Suggest {
 
 	text := d.TextBeforeCursor()
+	input, err := flags.Parse(text)
+	if err != nil {
+		panic(err)
+	}
 	if strings.Contains(text, "create") {
-		return c.createPatchSuggestions(d)
+		return c.createPatchSuggestions(d, input)
 	}
 
 	return prompt.FilterFuzzy([]prompt.Suggest{
