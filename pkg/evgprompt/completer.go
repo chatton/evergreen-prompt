@@ -86,13 +86,11 @@ func (c *Completer) createPatchSuggestions(d prompt.Document) []prompt.Suggest {
 			Description: "Specify a task to run",
 		})
 
-	if flags.GetBuildVariantValue(d.TextBeforeCursor()) == "" {
-		suggestions = append(suggestions,
-			prompt.Suggest{
-				Text:        "--buildvariant",
-				Description: "Specify a build variant",
-			})
-	}
+	suggestions = append(suggestions,
+		prompt.Suggest{
+			Text:        "--buildvariant",
+			Description: "Specify a build variant",
+		})
 
 	if flags.GetDescriptionValue(d.TextBeforeCursor()) == "" {
 		suggestions = append(suggestions,
