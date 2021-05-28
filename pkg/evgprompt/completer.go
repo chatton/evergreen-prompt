@@ -80,14 +80,11 @@ func (c *Completer) createPatchSuggestions(d prompt.Document) []prompt.Suggest {
 
 	var suggestions []prompt.Suggest
 
-	// we only want to show suggestions when they have not yet been specified.
-	if flags.GetTaskValue(d.TextBeforeCursor()) == "" {
-		suggestions = append(suggestions,
-			prompt.Suggest{
-				Text:        "--task",
-				Description: "Specify a task to run",
-			})
-	}
+	suggestions = append(suggestions,
+		prompt.Suggest{
+			Text:        "--task",
+			Description: "Specify a task to run",
+		})
 
 	if flags.GetBuildVariantValue(d.TextBeforeCursor()) == "" {
 		suggestions = append(suggestions,
@@ -234,39 +231,3 @@ func (c *Completer) getParamSuggestions() []prompt.Suggest {
 
 	return suggestions
 }
-
-//
-//func (c *Completer) abortPatchSuggestions(d prompt.Document) []prompt.Suggest {
-//	var suggestions []prompt.Suggest
-//	if getLastWord(d) == "abort" {
-//		suggestions = append(suggestions,
-//			prompt.Suggest{
-//				Text:        "--patch-id",
-//				Description: "Patch ID of the patch to abort.",
-//			})
-//		return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
-//	}
-//
-//	patches, err := c.client.GetPatches()
-//	if err != nil {
-//		panic(err)
-//	}
-//
-//	// if we have selected a patch id already,
-//	// we should stop showing other patch ids!
-//	lastWord := getLastWord(d)
-//	for _, p := range patches {
-//		if lastWord == p.PatchId {
-//			return nil
-//		}
-//	}
-//
-//	for _, p := range patches {
-//		suggestions = append(suggestions, prompt.Suggest{
-//			Text:        p.PatchId,
-//			Description: p.Description,
-//		})
-//	}
-//
-//	return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
-//}
