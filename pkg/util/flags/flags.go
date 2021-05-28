@@ -32,7 +32,7 @@ type Flags struct {
 // Parse accepts the command line input string and returns a struct
 // containing all of the values that were specified.
 func Parse(in string) (Flags, error) {
-	priorityStr := GetPriorityValue(in)
+	priorityStr := getPriorityValue(in)
 	if priorityStr == "" {
 		priorityStr = "-1"
 	}
@@ -53,7 +53,7 @@ func Parse(in string) (Flags, error) {
 	}, nil
 }
 
-func GetBuildVariantValue(s string) string {
+func getBuildVariantValue(s string) string {
 	flags := extractFlags(s, patchCreate)
 	if bv, ok := getValueFromFlagKey("--buildvariant", flags); ok {
 		return bv
@@ -69,7 +69,7 @@ func getAllBuildVariants(s string) []string {
 	return nil
 }
 
-func GetTaskValue(s string) string {
+func getTaskValue(s string) string {
 	flags := extractFlags(s, patchCreate)
 	if task, ok := getValueFromFlagKey("--task", flags); ok {
 		return task
@@ -93,7 +93,7 @@ func getDescriptionValue(s string) string {
 	return ""
 }
 
-func GetPriorityValue(s string) string {
+func getPriorityValue(s string) string {
 	flags := extractFlags(s, patchCreate)
 	if priority, ok := getValueFromFlagKey("--priority", flags); ok {
 		return priority

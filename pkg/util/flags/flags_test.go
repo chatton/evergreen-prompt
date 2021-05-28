@@ -6,21 +6,21 @@ import (
 )
 
 func TestBuildVariantFlagExtraction(t *testing.T) {
-	bv := GetBuildVariantValue("--buildvariant myvalue")
+	bv := getBuildVariantValue("--buildvariant myvalue")
 	assert.Equal(t, "myvalue", bv)
 }
 
 func TestTaskFlagExtraction(t *testing.T) {
 	t.Run("Test task as only flag", func(t *testing.T) {
-		task := GetTaskValue("--task this_is_my_task")
+		task := getTaskValue("--task this_is_my_task")
 		assert.Equal(t, "this_is_my_task", task)
 	})
 	t.Run("Test task as first flag", func(t *testing.T) {
-		task := GetTaskValue("--task this_is_my_task --buildvariant this_is_my_bv")
+		task := getTaskValue("--task this_is_my_task --buildvariant this_is_my_bv")
 		assert.Equal(t, "this_is_my_task", task)
 	})
 	t.Run("Test task as second flag", func(t *testing.T) {
-		task := GetTaskValue("--buildvariant this_is_my_bv --task this_is_my_task")
+		task := getTaskValue("--buildvariant this_is_my_bv --task this_is_my_task")
 		assert.Equal(t, "this_is_my_task", task)
 	})
 }
