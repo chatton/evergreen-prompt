@@ -3,6 +3,7 @@ package evgprompt
 import (
 	"chatton.com/evergreen-prompt/pkg/evergreen"
 	"chatton.com/evergreen-prompt/pkg/evergreen/client"
+	"chatton.com/evergreen-prompt/pkg/util/contains"
 	"chatton.com/evergreen-prompt/pkg/util/flags"
 	"github.com/c-bata/go-prompt"
 	"strings"
@@ -183,9 +184,12 @@ func (c *Completer) getTaskSuggestions(d prompt.Document, flags flags.Flags) []p
 
 	if buildvariantValue == "" {
 		for _, t := range c.config.Tasks {
-			suggestions = append(suggestions, prompt.Suggest{
-				Text: t.Name,
-			})
+			// only suggest the task if it not already specified.
+			if !contains.String(flags.Tasks, t.Name) {
+				suggestions = append(suggestions, prompt.Suggest{
+					Text: t.Name,
+				})
+			}
 		}
 		return prompt.FilterFuzzy(suggestions, d.GetWordBeforeCursor(), true)
 	}
