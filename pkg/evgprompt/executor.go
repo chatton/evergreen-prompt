@@ -71,22 +71,29 @@ func (e *Executor) handleEvergreenPatchCreate(s string) {
 
 	args = append(args, "-d", description)
 
-	out, err := exec.Command("evergreen", args...).Output()
-	fmt.Println(string(out))
-	if err != nil {
-		return
+	if input.Times == -1 {
+		input.Times = 1
 	}
 
-	// -1 means we didn't set a priority. Just use default.
-	if input.Priority != -1 {
-		id := getPatchIdFromCliOutput(string(out))
-		// set priority of patch
-		_, err = e.client.PatchPatch(id, patch.Body{Priority: input.Priority})
+	for i := 0; i < input.Times; i++ {
+		out, err := exec.Command("evergreen", args...).Output()
+		fmt.Println(string(out))
 		if err != nil {
-			fmt.Printf("error updating patch priority: %s\n", err)
 			return
 		}
+
+		// -1 means we didn't set a priority. Just use default.
+		if input.Priority != -1 {
+			id := getPatchIdFromCliOutput(string(out))
+			// set priority of patch
+			_, err = e.client.PatchPatch(id, patch.Body{Priority: input.Priority})
+			if err != nil {
+				fmt.Printf("error updating patch priority: %s\n", err)
+				return
+			}
+		}
 	}
+
 }
 
 func (e *Executor) Execute(in string) {

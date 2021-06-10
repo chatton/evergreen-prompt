@@ -27,6 +27,7 @@ type Flags struct {
 	Project       string
 	Uncommitted   bool
 	Params        map[string]string
+	Times         int
 }
 
 // Parse accepts the command line input string and returns a struct
@@ -50,7 +51,21 @@ func Parse(in string) (Flags, error) {
 		Priority:      priority,
 		Uncommitted:   hasSpecifiedUncommitted(in),
 		Params:        getAllParams(in),
+		Times:         getTimes(in),
 	}, nil
+}
+
+func getTimes(s string) int {
+	flags := extractFlags(s, patchCreate)
+	if count, ok := getValuesWithFlagKey("--times", flags); ok {
+		times, err := strconv.Atoi(count[0])
+		if err != nil {
+			return -1
+		}
+
+		return times
+	}
+	return -1
 }
 
 func getBuildVariantValue(s string) string {

@@ -79,6 +79,10 @@ func (c *Completer) createPatchSuggestions(d prompt.Document, inputFlags flags.F
 		return nil
 	}
 
+	if getLastWord(d) == "--times" {
+		return nil
+	}
+
 	var suggestions []prompt.Suggest
 
 	suggestions = append(suggestions,
@@ -123,6 +127,13 @@ func (c *Completer) createPatchSuggestions(d prompt.Document, inputFlags flags.F
 				Text:        "--project",
 				Description: "Specify the name of an existing evergreen project",
 			})
+	}
+
+	if inputFlags.Times == -1 {
+		suggestions = append(suggestions, prompt.Suggest{
+			Text:        "--times",
+			Description: "Specify the number of times the evergreen patch should be run",
+		})
 	}
 
 	// it's possible to add multiple params to a single command, so the field
