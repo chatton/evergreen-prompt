@@ -2,4 +2,5 @@
 
 # Changes
 
-* Added support for passing evergreen parameters via `patch create --param key=value`
+* Added support for the `--times` flag, which runs a given task a set number of times.
+* Upgraded to go v1.17
